@@ -32,7 +32,7 @@ public class GameSceneManager {
      * @return
      */
     BaseScreen getScene(){
-
+        return null;
     }
 
     /**
@@ -86,8 +86,8 @@ public class GameSceneManager {
      * 获取GameSceneManager单例
      * @return
      */
-    static GameSceneManager getInstance(){
-        return null；
+    public static GameSceneManager getInstance(){
+        return null;
     }
 
 }

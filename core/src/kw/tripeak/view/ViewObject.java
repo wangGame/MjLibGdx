@@ -3,11 +3,11 @@ package kw.tripeak.view;
 import com.badlogic.gdx.scenes.scene2d.Group;
 
 public class ViewObject extends Group {
-    private String m_MainString;   //主指令
-    private String m_subString;    //子指令
-    private String m_pObjectData;        //数据
-    private int m_iDataSize;   //数据大小
-    private static String VIEW_SWITCH_MAIN_LAYER = "SwitchMainLayer"; //切换主界面
+    public String m_MainString;   //主指令
+    public String m_subString;    //子指令
+    public String m_pObjectData;        //数据
+    public int m_iDataSize;   //数据大小
+    public static String VIEW_SWITCH_MAIN_LAYER = "SwitchMainLayer"; //切换主界面
     boolean init() {
         this.m_MainString = "";
         this.m_subString = "";

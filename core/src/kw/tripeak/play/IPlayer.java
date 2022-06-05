@@ -1,6 +1,7 @@
 package kw.tripeak.play;
 
 import kw.tripeak.engine.GameEngine;
+import kw.tripeak.screen.IGameEngineEventListener;
 
 public class IPlayer {
     //玩家性别
@@ -11,9 +12,13 @@ public class IPlayer {
 
     protected boolean m_Android;          //是否机器人标识
     int m_ChairID; //椅子编号
-    GameEngine.IGameEngineEventListener m_pGameEngineEventListener; //游戏事件监听
+    IGameEngineEventListener m_pGameEngineEventListener; //游戏事件监听
     PlayerSex m_Sex;     //性别
-    public IPlayer(boolean android, PlayerSex sex , GameEngine.IGameEngineEventListener pGameEngineEventListener) {
+
+    public IPlayer(PlayerSex sex , IGameEngineEventListener pGameEngineEventListener) {
+        this(false,sex,pGameEngineEventListener);
+    };
+    public IPlayer(boolean android, PlayerSex sex , IGameEngineEventListener pGameEngineEventListener) {
         m_Android = android;
         m_Sex = sex;
         m_pGameEngineEventListener = pGameEngineEventListener;
@@ -49,7 +54,7 @@ public class IPlayer {
      * 设置监听
      * @param pGameEngineEventListener
      */
-    public void setGameEngineEventListener(GameEngine.IGameEngineEventListener pGameEngineEventListener) {
+    public void setGameEngineEventListener(IGameEngineEventListener pGameEngineEventListener) {
         m_pGameEngineEventListener = pGameEngineEventListener;
     }
 
@@ -57,7 +62,7 @@ public class IPlayer {
      * 获取监听
      * @return
      */
-    public GameEngine.IGameEngineEventListener getGameEngineEventListener() {
+    public IGameEngineEventListener getGameEngineEventListener() {
         return m_pGameEngineEventListener;
     }
 
