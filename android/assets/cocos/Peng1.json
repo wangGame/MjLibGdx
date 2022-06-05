@@ -1,0 +1,249 @@
+{
+  "ID": "c1a0d67b-9cfe-430e-871b-2e2c454faffd",
+  "Version": "3.10.0.0",
+  "Name": "Peng1",
+  "Content": {
+    "Content": {
+      "Animation": {
+        "Duration": 0,
+        "Speed": 1.0,
+        "Timelines": [],
+        "ctype": "TimelineActionData"
+      },
+      "AnimationList": [],
+      "ObjectData": {
+        "Tag": 47,
+        "Children": [
+          {
+            "ClipAble": false,
+            "BackColorAlpha": 0,
+            "ComboBoxIndex": 1,
+            "SingleColor": {
+              "R": 150,
+              "G": 200
+            },
+            "FirstColor": {
+              "R": 150,
+              "G": 200
+            },
+            "EndColor": {},
+            "ColorVector": {
+              "ScaleY": 1.0
+            },
+            "Scale9Width": 1,
+            "Scale9Height": 1,
+            "AnchorPoint": {},
+            "Position": {
+              "X": 0.0,
+              "Y": 0.0
+            },
+            "Scale": {
+              "ScaleX": 0.6,
+              "ScaleY": 0.6
+            },
+            "CColor": {},
+            "IconVisible": false,
+            "PrePosition": {
+              "X": 0.0,
+              "Y": 0.0
+            },
+            "PreSize": {
+              "X": 0.0,
+              "Y": 0.0
+            },
+            "RightMargin": -120.0,
+            "TopMargin": -266.0,
+            "Tag": 54,
+            "Children": [
+              {
+                "ClipAble": false,
+                "BackColorAlpha": 0,
+                "ComboBoxIndex": 1,
+                "SingleColor": {
+                  "R": 150,
+                  "G": 200
+                },
+                "FirstColor": {
+                  "R": 150,
+                  "G": 200
+                },
+                "EndColor": {},
+                "ColorVector": {
+                  "ScaleY": 1.0
+                },
+                "Scale9Width": 1,
+                "Scale9Height": 1,
+                "TouchEnable": true,
+                "AnchorPoint": {},
+                "Position": {
+                  "X": 0.0,
+                  "Y": 0.0
+                },
+                "Scale": {
+                  "ScaleX": 0.99,
+                  "ScaleY": 0.99
+                },
+                "CColor": {},
+                "IconVisible": false,
+                "PrePosition": {
+                  "X": 0.0,
+                  "Y": 0.0
+                },
+                "PreSize": {
+                  "X": 1.0,
+                  "Y": 1.0
+                },
+                "Tag": 55,
+                "Children": [
+                  {
+                    "FileData": {
+                      "Type": "Normal",
+                      "Path": "GameLayer/Mahjong/1/mingmah_00.png",
+                      "Plist": ""
+                    },
+                    "Scale9OriginX": 39,
+                    "Scale9OriginY": 37,
+                    "Scale9Width": 42,
+                    "Scale9Height": 40,
+                    "AnchorPoint": {},
+                    "Position": {
+                      "X": 0.0,
+                      "Y": 152.0
+                    },
+                    "Scale": {
+                      "ScaleX": 1.0,
+                      "ScaleY": 1.0
+                    },
+                    "CColor": {},
+                    "IconVisible": false,
+                    "PrePosition": {
+                      "X": 0.0,
+                      "Y": 0.5714
+                    },
+                    "PreSize": {
+                      "X": 1.0,
+                      "Y": 0.4286
+                    },
+                    "BottomMargin": 152.0,
+                    "Tag": 56,
+                    "ActionTag": -13304622,
+                    "Size": {
+                      "X": 120.0,
+                      "Y": 114.0
+                    },
+                    "Name": "Image_left",
+                    "ctype": "ImageViewObjectData"
+                  },
+                  {
+                    "FileData": {
+                      "Type": "Normal",
+                      "Path": "GameLayer/Mahjong/1/mingmah_00.png",
+                      "Plist": ""
+                    },
+                    "Scale9OriginX": 39,
+                    "Scale9OriginY": 37,
+                    "Scale9Width": 42,
+                    "Scale9Height": 40,
+                    "AnchorPoint": {},
+                    "Position": {
+                      "X": 0.0,
+                      "Y": 76.0
+                    },
+                    "Scale": {
+                      "ScaleX": 1.0,
+                      "ScaleY": 1.0
+                    },
+                    "CColor": {},
+                    "IconVisible": false,
+                    "PrePosition": {
+                      "X": 0.0,
+                      "Y": 0.2857
+                    },
+                    "PreSize": {
+                      "X": 1.0,
+                      "Y": 0.4286
+                    },
+                    "TopMargin": 76.0,
+                    "BottomMargin": 76.0,
+                    "Tag": 57,
+                    "ActionTag": 2014017771,
+                    "Size": {
+                      "X": 120.0,
+                      "Y": 114.0
+                    },
+                    "Name": "Image_center",
+                    "ctype": "ImageViewObjectData"
+                  },
+                  {
+                    "FileData": {
+                      "Type": "Normal",
+                      "Path": "GameLayer/Mahjong/1/mingmah_00.png",
+                      "Plist": ""
+                    },
+                    "Scale9OriginX": 39,
+                    "Scale9OriginY": 37,
+                    "Scale9Width": 42,
+                    "Scale9Height": 40,
+                    "AnchorPoint": {},
+                    "Position": {
+                      "X": 0.0,
+                      "Y": 0.0
+                    },
+                    "Scale": {
+                      "ScaleX": 1.0,
+                      "ScaleY": 1.0
+                    },
+                    "CColor": {},
+                    "IconVisible": false,
+                    "PrePosition": {
+                      "X": 0.0,
+                      "Y": 0.0
+                    },
+                    "PreSize": {
+                      "X": 1.0,
+                      "Y": 0.4286
+                    },
+                    "TopMargin": 152.0,
+                    "Tag": 58,
+                    "ActionTag": -184685482,
+                    "Size": {
+                      "X": 120.0,
+                      "Y": 114.0
+                    },
+                    "Name": "Image_right",
+                    "ctype": "ImageViewObjectData"
+                  }
+                ],
+                "ActionTag": 1473791091,
+                "Size": {
+                  "X": 120.0,
+                  "Y": 266.0
+                },
+                "Name": "Panel_4",
+                "ctype": "PanelObjectData"
+              }
+            ],
+            "ActionTag": -106939271,
+            "Size": {
+              "X": 120.0,
+              "Y": 266.0
+            },
+            "Name": "Panel_3",
+            "ctype": "PanelObjectData"
+          }
+        ],
+        "Size": {
+          "X": 0.0,
+          "Y": 0.0
+        },
+        "Name": "Node",
+        "ctype": "SingleNodeObjectData"
+      },
+      "UsedResources": [
+        "GameLayer/Mahjong/1/mingmah_00.png"
+      ],
+      "ctype": "GameFileData"
+    }
+  },
+  "Type": "Node"
+}
