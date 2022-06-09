@@ -9,6 +9,7 @@ public class IGameEngineEventListener {
      * @param pIPlayer
      */
     public void setIPlayer(IPlayer pIPlayer) {
+        System.out.println("------加入玩家");
     }
 
     /**

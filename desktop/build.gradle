@@ -1,0 +1,32 @@
+sourceCompatibility = 1.8
+sourceSets.main.java.srcDirs = [ "src/" ]
+sourceSets.main.resources.srcDirs = ["../android/assets"]
+
+project.ext.mainClassName = "ogz.tripeaks.desktop.DesktopLauncher"
+project.ext.assetsDir = new File("../android/assets")
+archivesBaseName = "tripeaks"
+version = "1.0"
+
+
+
+task dist(type: Jar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes 'Main-Class': project.mainClassName
+    }
+    dependsOn configurations.runtimeClasspath
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    with jar
+}
+
+dependencies {
+    implementation files('libs\\gdx-backend-lwjgl.jar')
+    implementation files('libs\\gdx-backend-lwjgl-natives.jar')
+    implementation files('libs\\gdx-natives.jar')
+    implementation files('libs\\gdx-tools.jar')
+}
+
+
+dist.dependsOn classes

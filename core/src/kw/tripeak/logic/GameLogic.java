@@ -1,6 +1,7 @@
 package kw.tripeak.logic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static kw.tripeak.constant.Constant.MAX_COUNT;
 import static kw.tripeak.constant.Constant.MAX_INDEX;
@@ -69,6 +70,10 @@ public class GameLogic {
     public static int CHS_GP      = 0x08;        //有杠
     public static int CHS_KZ      = 0x10;        //卡张
 
+    public int getCardData() {
+        return 0;
+    }
+
 
     //////////////////////////////////////////////////////////////////////////
 //类型子项
@@ -79,12 +84,12 @@ public class GameLogic {
     };
 
     //组合子项
-    public class TagWeaveItem {
-        int cbWeaveKind;                        //组合类型
-        int cbCenterCard;                        //中心扑克
-        int cbPublicCard;                        //公开标志
-        int cbProvideUser;                        //供应用户
-        int cbValid;                            //有效标识
+    public static class TagWeaveItem {
+        public int cbWeaveKind;                        //组合类型
+        public int cbCenterCard;                        //中心扑克
+        public int cbPublicCard;                        //公开标志
+        public int cbProvideUser;                        //供应用户
+        public int cbValid;                            //有效标识
     };
 
     //杠牌结果
@@ -110,17 +115,20 @@ public class GameLogic {
     //数组说明
     ArrayList<tagAnalyseItem> CAnalyseItemArray;
 //    private  static int m_cbCardDataArray[] = new int[MAX_REPERTORY];    //扑克数据
-    public void shuffle(int cbCardData[], int cbMaxCount){
-//        double random = Math.random();
-//        srand(static_cast<unsigned int>(time(NULL)));
+    public int[] shuffle(int cbCardData[], int cbMaxCount){
         int []cbCardDataTemp = new int[m_cbCardDataArray.length];
-//        memcpy(cbCardDataTemp, m_cbCardDataArray, sizeof(m_cbCardDataArray));
+//        Arrays.copy(m_cbCardDataArray,cbCardDataTemp)
+        int index = 0;
+        for (int i : m_cbCardDataArray) {
+            cbCardDataTemp[index++] = i;
+        }
         int cbRandCount = 0, cbPosition = 0;
         do {
             cbPosition = (Math.round(1) % (cbMaxCount - cbRandCount));
             cbCardData[cbRandCount++] = cbCardDataTemp[cbPosition];
             cbCardDataTemp[cbPosition] = cbCardDataTemp[cbMaxCount - cbRandCount];
         } while (cbRandCount < cbMaxCount);
+        return cbCardDataTemp;
     }//洗牌
     public boolean removeCard(int cbCardIndex[], int cbRemoveCard){
         int cbRemoveIndex = switchToCardIndex(cbRemoveCard);     //删除扑克

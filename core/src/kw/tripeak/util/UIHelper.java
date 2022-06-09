@@ -16,7 +16,7 @@ public class UIHelper {
      * @return
      */
     public static Actor seekNodeByTag(Group root, String tag) {
-        if (root != null) {
+        if (root == null) {
             return null;
         }
 

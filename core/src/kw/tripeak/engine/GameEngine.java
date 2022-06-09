@@ -73,8 +73,10 @@ public class GameEngine {
         m_cbSendCardData = 0;
         m_cbMa = 0;
     }    //初始化数据
+
     public boolean onGameStart() {
-        m_GameLogic.shuffle(m_cbRepertoryCard, m_cbRepertoryCard.length);        //洗牌
+
+        m_cbRepertoryCard = m_GameLogic.shuffle(m_cbRepertoryCard, m_cbRepertoryCard.length);        //洗牌
         iDiceCount = (int) (Math.random() % 6 + 1 + Math.random() % 6 + 1);    //骰子点数
         if (m_cbBankerUser == INVALID_CHAIR) {
             m_cbBankerUser = (iDiceCount % GAME_PLAYER);        //确定庄家
@@ -90,28 +92,28 @@ public class GameEngine {
         m_cbProvideUser = INVALID_CHAIR;    //初始化供应玩家
         m_cbCurrentUser = m_cbBankerUser;    //设置当前操作玩家为庄家
         //构造数据
-        GameCmd.CMD_S_GameStart GameStart = new GameCmd().new CMD_S_GameStart();
-        GameStart.iDiceCount = iDiceCount;
-        GameStart.cbBankerUser = m_cbBankerUser;
-        GameStart.cbCurrentUser = m_cbCurrentUser;
-        GameStart.cbLeftCardCount = m_cbLeftCardCount - m_cbMa;
-
-        for (int i = 0; i < m_CurrChair; i++) {      //通知全部玩家开始游戏
-            m_GameLogic.switchToCardData(m_cbCardIndex[i], GameStart.cbCardData, MAX_COUNT);
-            if (m_pIPlayer[i].isAndroid()) {   //机器人作弊用，用于分析其他玩的牌
-                int bIndex = 1;
-                for (int j = 0; j < GAME_PLAYER; j++) {
-                    if (j == i) continue;
-                    m_GameLogic.switchToCardData(m_cbCardIndex[j],
-                            GameStart.cbCardData, MAX_COUNT);
-                }
-            }
-            IGameEngineEventListener pListener = m_pIPlayer[i].getGameEngineEventListener();
-            if (pListener != null) {
-                pListener.onGameStartEvent(GameStart);
-            }
-        }
-        dispatchCardData(m_cbCurrentUser);
+//        GameCmd.CMD_S_GameStart GameStart = new GameCmd().new CMD_S_GameStart();
+//        GameStart.iDiceCount = iDiceCount;
+//        GameStart.cbBankerUser = m_cbBankerUser;
+//        GameStart.cbCurrentUser = m_cbCurrentUser;
+//        GameStart.cbLeftCardCount = m_cbLeftCardCount - m_cbMa;
+//
+//        for (int i = 0; i < m_CurrChair; i++) {      //通知全部玩家开始游戏
+//            m_GameLogic.switchToCardData(m_cbCardIndex[i], GameStart.cbCardData, MAX_COUNT);
+//            if (m_pIPlayer[i].isAndroid()) {   //机器人作弊用，用于分析其他玩的牌
+//                int bIndex = 1;
+//                for (int j = 0; j < GAME_PLAYER; j++) {
+//                    if (j == i) continue;
+//                    m_GameLogic.switchToCardData(m_cbCardIndex[j],
+//                            GameStart.cbCardData, MAX_COUNT);
+//                }
+//            }
+//            IGameEngineEventListener pListener = m_pIPlayer[i].getGameEngineEventListener();
+//            if (pListener != null) {
+//                pListener.onGameStartEvent(GameStart);
+//            }
+//        }
+//        dispatchCardData(m_cbCurrentUser);
         return true;
     }     //开始游戏
     public boolean onGameRestart(){
@@ -173,7 +175,7 @@ public class GameEngine {
             }
         }
         if (m_CurrChair == GAME_PLAYER) {    //人满了，开始游戏
-            onGameStart();
+//            onGameStart();
         }
         return true;
     }    //玩家进入

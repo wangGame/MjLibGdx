@@ -1,0 +1,24 @@
+apply plugin: "java"
+
+apply plugin: 'maven-publish'
+dependencies {
+//    compile project(':core')
+
+//    implementation "com.badlogicgames.gdx:gdx:$gdxVersion"
+    implementation "com.badlogicgames.ashley:ashley:$ashleyVersion"
+}
+
+sourceSets.main.java.srcDirs = [
+        "src/","utilssrc",
+]
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.kw.gdx'
+            artifactId = 'libGdxLib'
+            version = '1.0'
+            from components.java
+        }
+    }
+}
