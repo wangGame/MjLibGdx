@@ -64,7 +64,7 @@ public class GameCmd {
     };
 
     //游戏结束
-    public class CMD_S_GameEnd {
+    public static class CMD_S_GameEnd {
         public int cbCardCount[] = new int[GAME_PLAYER];                //扑克总数
         public int cbCardData[][] = new int[GAME_PLAYER][MAX_COUNT];      //扑克数据
         public int cbHuUser;                                //胡牌人员
@@ -83,12 +83,12 @@ public class GameCmd {
     };
 
     //出牌命令
-    public class CMD_C_OutCard {
+    public static class CMD_C_OutCard {
         public int cbCardData;                            //扑克数据
     };
 
     //操作命令
-    public class CMD_C_OperateCard {
+    public static class CMD_C_OperateCard {
         public int cbOperateUser;                         //操作玩家
         public int cbOperateCode;                         //操作代码
         public int cbOperateCard;                         //操作扑克

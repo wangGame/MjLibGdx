@@ -7,6 +7,7 @@ import static kw.tripeak.cmd.GameCmd.MAX_DISCARD;
 import static kw.tripeak.cmd.GameCmd.MAX_INDEX;
 import static kw.tripeak.cmd.GameCmd.MAX_REPERTORY;
 import static kw.tripeak.cmd.GameCmd.MAX_WEAVE;
+import static kw.tripeak.logic.GameLogic.MASK_VALUE;
 import static kw.tripeak.logic.GameLogic.WIK_G;
 import static kw.tripeak.logic.GameLogic.WIK_NULL;
 
@@ -75,7 +76,6 @@ public class GameEngine {
     }    //初始化数据
 
     public boolean onGameStart() {
-
         m_cbRepertoryCard = m_GameLogic.shuffle(m_cbRepertoryCard, m_cbRepertoryCard.length);        //洗牌
         iDiceCount = (int) (Math.random() % 6 + 1 + Math.random() % 6 + 1);    //骰子点数
         if (m_cbBankerUser == INVALID_CHAIR) {
@@ -92,28 +92,28 @@ public class GameEngine {
         m_cbProvideUser = INVALID_CHAIR;    //初始化供应玩家
         m_cbCurrentUser = m_cbBankerUser;    //设置当前操作玩家为庄家
         //构造数据
-//        GameCmd.CMD_S_GameStart GameStart = new GameCmd().new CMD_S_GameStart();
-//        GameStart.iDiceCount = iDiceCount;
-//        GameStart.cbBankerUser = m_cbBankerUser;
-//        GameStart.cbCurrentUser = m_cbCurrentUser;
-//        GameStart.cbLeftCardCount = m_cbLeftCardCount - m_cbMa;
-//
-//        for (int i = 0; i < m_CurrChair; i++) {      //通知全部玩家开始游戏
-//            m_GameLogic.switchToCardData(m_cbCardIndex[i], GameStart.cbCardData, MAX_COUNT);
-//            if (m_pIPlayer[i].isAndroid()) {   //机器人作弊用，用于分析其他玩的牌
-//                int bIndex = 1;
-//                for (int j = 0; j < GAME_PLAYER; j++) {
-//                    if (j == i) continue;
-//                    m_GameLogic.switchToCardData(m_cbCardIndex[j],
-//                            GameStart.cbCardData, MAX_COUNT);
-//                }
-//            }
-//            IGameEngineEventListener pListener = m_pIPlayer[i].getGameEngineEventListener();
-//            if (pListener != null) {
-//                pListener.onGameStartEvent(GameStart);
-//            }
-//        }
-//        dispatchCardData(m_cbCurrentUser);
+        GameCmd.CMD_S_GameStart GameStart = new GameCmd().new CMD_S_GameStart();
+        GameStart.iDiceCount = iDiceCount;
+        GameStart.cbBankerUser = m_cbBankerUser;
+        GameStart.cbCurrentUser = m_cbCurrentUser;
+        GameStart.cbLeftCardCount = m_cbLeftCardCount - m_cbMa;
+
+        for (int i = 0; i < m_CurrChair; i++) {      //通知全部玩家开始游戏
+            m_GameLogic.switchToCardData(m_cbCardIndex[i], GameStart.cbCardData, MAX_COUNT);
+            if (m_pIPlayer[i].isAndroid()) {   //机器人作弊用，用于分析其他玩的牌
+                int bIndex = 1;
+                for (int j = 0; j < GAME_PLAYER; j++) {
+                    if (j == i) continue;
+                    m_GameLogic.switchToCardData(m_cbCardIndex[j],
+                            GameStart.cbCardData, MAX_COUNT);
+                }
+            }
+            IGameEngineEventListener pListener = m_pIPlayer[i].getGameEngineEventListener();
+            if (pListener != null) {
+                pListener.onGameStartEvent(GameStart);
+            }
+        }
+        dispatchCardData(m_cbCurrentUser);
         return true;
     }     //开始游戏
     public boolean onGameRestart(){
@@ -158,9 +158,9 @@ public class GameEngine {
         }
         return true;
     }   //出牌命令
-    public boolean onEventGameConclude(int cbChairID){
-        return false;
-    } //结束游戏
+//    public boolean onEventGameConclude(int cbChairID){
+//        return false;
+//    } //结束游戏
     public boolean onUserEnter(IPlayer pIPlayer){
         if (m_CurrChair >= GAME_PLAYER) {
             NLog.i("玩家已满，无法加入！");
@@ -175,7 +175,8 @@ public class GameEngine {
             }
         }
         if (m_CurrChair == GAME_PLAYER) {    //人满了，开始游戏
-//            onGameStart();
+            System.out.println(" man l ");
+            onGameStart();
         }
         return true;
     }    //玩家进入
@@ -270,4 +271,283 @@ public class GameEngine {
     public boolean onUserOperateCard(GameCmd.CMD_C_OperateCard OperateCard){
         return false;
     }
+
+    /**
+     * 游戏结束
+     * @param cbChairID
+     */
+    boolean onEventGameConclude(int cbChairID) {
+        NLog.e("----游戏结束----");
+        int m_cbLastBankerUser = m_cbBankerUser;    //保存上局庄家
+
+        GameCmd.CMD_S_GameEnd GameEnd = new GameCmd.CMD_S_GameEnd();
+//        memset(&GameEnd, 0, sizeof(CMD_S_GameEnd));    //清空内存
+        //=================================计算马==============================================
+        int cbOkBird = 0;
+        int cb0 = 0;                //买到0位置
+        int cb1 = 0;                //买到1位置
+        int cb2 = 0;                //买到2位置
+        int cb3 = 0;                //买到3位置
+        for (int i = 0; i < m_cbMa; i++) {
+            int cbLast = --m_cbLeftCardCount;
+            if (cbLast >= 0) {
+                int cbBird = m_cbRepertoryCard[cbLast];
+                int cbValue = ((cbBird & MASK_VALUE) % GAME_PLAYER);
+                cbValue = ((cbValue - m_cbLastBankerUser + GAME_PLAYER) % GAME_PLAYER);
+                if (cbValue == 1) {
+                    cb0++;
+                }
+                if (cbValue == 2) {
+                    cb1++;
+                }
+                if (cbValue == 3) {
+                    cb2++;
+                }
+                if (cbValue == 0) {
+                    cb3++;
+                }
+                GameEnd.cbMaCard[i] = cbBird;
+            }
+        }
+        //椅子顺序为顺时针，拿牌顺序为逆时针
+        int cbMaList[] = {0, 0, 0, 0};
+        cbMaList[0] = cb0;
+        cbMaList[1] = cb3;
+        cbMaList[2] = cb2;
+        cbMaList[3] = cb1;
+        //结束信息
+        GameEnd.cbProvideUser = m_cbProvideUser;
+        GameEnd.cbHuUser = m_cbTargetUser;          //胡牌玩家，1左移 chairID位
+        GameEnd.cbHuCard = m_cbHuCard;
+        for (int i = 0; i < GAME_PLAYER; i++) { //结束信息
+            GameEnd.cbCardCount[i] = m_GameLogic.switchToCardData(m_cbCardIndex[i], GameEnd.cbCardData[i], MAX_COUNT);
+            GameEnd.dwHuRight[i] = m_llHuRight[i];
+            GameEnd.cbHuKind[i] = m_cbHuKind[i];
+            GameEnd.cbHuSpecial[i] = m_cbHuSpecial[i];
+            GameEnd.cbWeaveCount[i] = m_cbWeaveItemCount[i];
+            GameLogic.TagWeaveItem[] tagWeaveItems = m_WeaveItemArray[i];
+//            memcpy(GameEnd.WeaveItemArray[i], m_WeaveItemArray[i], sizeof(m_WeaveItemArray[i]));
+        }
+        for (int i = 0; i < GAME_PLAYER; i++) {     //计算杠分
+            for (int j = 0; j < m_cbWeaveItemCount[i]; j++) {
+                if (m_WeaveItemArray[i][j].cbWeaveKind == WIK_G) {                //没被抢的杠、和后杠
+                    if (m_WeaveItemArray[i][j].cbPublicCard == true && m_WeaveItemArray[i][j].cbProvideUser != i) {         //放的杠2番
+                        int k = m_WeaveItemArray[i][j].cbProvideUser;
+                        int cbGangScore = 1;
+                        GameEnd.lGameScore[k] -= cbGangScore;
+                        GameEnd.lGameScore[i] += cbGangScore;
+                        //===================计算马分数开始=============================
+                        //输分马
+                        GameEnd.lGameScore[m_cbLastBankerUser] -= cbMaList[k] * cbGangScore;
+                        GameEnd.lGameScore[i] += cbMaList[k] * cbGangScore;
+                        //赢分马
+                        GameEnd.lGameScore[k] -= cbMaList[i] * cbGangScore;
+                        GameEnd.lGameScore[m_cbLastBankerUser] += cbMaList[i] * cbGangScore;
+                        //===================计算马分数结束=============================
+
+                        //记录常规积分
+                        GameEnd.lNormalGameScore[k] -= cbGangScore;
+                        GameEnd.lNormalGameScore[i] += cbGangScore;
+                        //记录马积分
+                        GameEnd.lMaGameScore[m_cbLastBankerUser] -= cbMaList[k] * cbGangScore;
+                        GameEnd.lMaGameScore[i] += cbMaList[k] * cbGangScore;
+                        GameEnd.lMaGameScore[k] -= cbMaList[i] * cbGangScore;
+                        GameEnd.lMaGameScore[m_cbLastBankerUser] += cbMaList[i] * cbGangScore;
+                    } else if (m_WeaveItemArray[i][j].cbPublicCard == false && m_WeaveItemArray[i][j].cbProvideUser == i) { //暗杠
+                        for (int k = 0; k < GAME_PLAYER; k++) {
+                            if (i != k) {
+                                int cbGangScore = 2;
+                                GameEnd.lGameScore[k] -= cbGangScore;
+                                GameEnd.lGameScore[i] += cbGangScore;
+                                //===================计算马分数开始=============================
+                                //输分马
+                                GameEnd.lGameScore[m_cbLastBankerUser] -= cbMaList[k] * cbGangScore;
+                                GameEnd.lGameScore[i] += cbMaList[k] * cbGangScore;
+                                //赢分马
+                                GameEnd.lGameScore[k] -= cbMaList[i] * cbGangScore;
+                                GameEnd.lGameScore[m_cbLastBankerUser] += cbMaList[i] * cbGangScore;
+                                //===================计算马分数结束=============================
+                                //记录常规积分
+                                GameEnd.lNormalGameScore[k] -= cbGangScore;
+                                GameEnd.lNormalGameScore[i] += cbGangScore;
+                                //记录马积分
+                                GameEnd.lMaGameScore[m_cbLastBankerUser] -= cbMaList[k] * cbGangScore;
+                                GameEnd.lMaGameScore[i] += cbMaList[k] * cbGangScore;
+                                GameEnd.lMaGameScore[k] -= cbMaList[i] * cbGangScore;
+                                GameEnd.lMaGameScore[m_cbLastBankerUser] += cbMaList[i] * cbGangScore;
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //统计积分
+        if (m_cbTargetUser != 0x0 && m_cbProvideUser != INVALID_CHAIR)    //胡牌人员不为0、供应人员不为INVALID_CHAIR
+        {
+            //自摸类型
+//            if ((m_llHuRight[m_cbProvideUser] != 0x00) && (FvMask.HasAny(m_cbTargetUser, _MASK_(m_cbProvideUser)))) {
+            //翻数计算
+            int cbChiHuOrder =0;
+//            int cbChiHuOrder = m_GameLogic.getHuFanShu(m_llHuRight[m_cbProvideUser], m_cbHuKind[m_cbProvideUser], m_cbHuSpecial[m_cbProvideUser]);
+
+            //循环累计
+            for (int i = 0; i < m_CurrChair; i++) {
+                if (i != m_cbProvideUser) {
+                    GameEnd.lGameScore[i] -= cbChiHuOrder;
+                    GameEnd.lGameScore[m_cbProvideUser] += cbChiHuOrder;
+                    //===================自摸计算马分数开始=============================
+                    //输分的马
+                    GameEnd.lGameScore[m_cbLastBankerUser] -= cbMaList[i] * cbChiHuOrder;
+                    GameEnd.lGameScore[m_cbProvideUser] += cbMaList[i] * cbChiHuOrder;
+                    //赢分的马
+                    GameEnd.lGameScore[i] -= cbMaList[m_cbProvideUser] * cbChiHuOrder;
+                    GameEnd.lGameScore[m_cbLastBankerUser] += cbMaList[m_cbProvideUser] * cbChiHuOrder;
+                    //===================自摸计算马分数结束=============================
+                    //记录常规积分
+                    GameEnd.lNormalGameScore[i] -= cbChiHuOrder;
+                    GameEnd.lNormalGameScore[m_cbProvideUser] += cbChiHuOrder;
+                    //记录马积分
+                    GameEnd.lMaGameScore[m_cbLastBankerUser] -= cbMaList[i] * cbChiHuOrder;
+                    GameEnd.lMaGameScore[m_cbProvideUser] += cbMaList[i] * cbChiHuOrder;
+                    GameEnd.lMaGameScore[i] -= cbMaList[m_cbProvideUser] * cbChiHuOrder;
+                    GameEnd.lMaGameScore[m_cbLastBankerUser] += cbMaList[m_cbProvideUser] * cbChiHuOrder;
+                }
+            }
+            //庄家设置
+            m_cbBankerUser = m_cbProvideUser;
+        } else {
+            //捉炮类型，添加一炮多响计分
+            int cbDistance = 0;
+//            for (int i = 0; i < m_CurrChair; i++) {
+//                if (i == m_cbProvideUser) {continue;} //跳过放炮人本身
+//                if ((m_llHuRight[i] != 0x0) && (i != m_cbProvideUser) && FvMask::HasAny(m_cbTargetUser, _MASK_(i))) {
+//                    //翻数计算
+//                    int cbChiHuOrder = m_GameLogic.getHuFanShu(m_llHuRight[i], m_cbHuKind[i], m_cbHuSpecial[i]);
+//                    if (((m_cbHuSpecial[i] & CHS_DH) != 0)) {    //如果是地胡
+//                        for (int j = 0; j < m_CurrChair; j++) {
+//                            if (i != j) {
+//                                GameEnd.lGameScore[j] -= cbChiHuOrder;
+//                                GameEnd.lGameScore[i] += cbChiHuOrder;
+//                                //===================计算马分数开始=============================
+//                                //输分马
+//                                GameEnd.lGameScore[m_cbLastBankerUser] -= cbMaList[j] * cbChiHuOrder;
+//                                GameEnd.lGameScore[i] += cbMaList[j] * cbChiHuOrder;
+//                                //赢分马
+//                                GameEnd.lGameScore[j] -= cbMaList[i] * cbChiHuOrder;
+//                                GameEnd.lGameScore[m_cbLastBankerUser] += cbMaList[i] * cbChiHuOrder;
+//                                //===================计算马分数结束=============================
+//
+//                                //记录常规积分
+//                                GameEnd.lNormalGameScore[j] -= cbChiHuOrder;
+//                                GameEnd.lNormalGameScore[i] += cbChiHuOrder;
+//                                //记录马积分
+//                                GameEnd.lMaGameScore[m_cbLastBankerUser] -= cbMaList[j] * cbChiHuOrder;
+//                                GameEnd.lMaGameScore[i] += cbMaList[j] * cbChiHuOrder;
+//                                GameEnd.lMaGameScore[j] -= cbMaList[i] * cbChiHuOrder;
+//                                GameEnd.lMaGameScore[m_cbLastBankerUser] += cbMaList[i] * cbChiHuOrder;
+//                            }
+//                        }
+//                    } else {
+//                        GameEnd.lGameScore[m_cbProvideUser] -= cbChiHuOrder;
+//                        GameEnd.lGameScore[i] += cbChiHuOrder;
+//                        //===================计算马分数开始=============================
+//                        //输分马
+//                        GameEnd.lGameScore[m_cbLastBankerUser] -= cbMaList[m_cbProvideUser] * cbChiHuOrder;
+//                        GameEnd.lGameScore[i] += cbMaList[m_cbProvideUser] * cbChiHuOrder;
+//                        //赢分马
+//                        GameEnd.lGameScore[m_cbProvideUser] -= cbMaList[i] * cbChiHuOrder;
+//                        GameEnd.lGameScore[m_cbLastBankerUser] += cbMaList[i] * cbChiHuOrder;
+//                        //===================计算马分数结束=============================
+//
+//                        //记录常规积分
+//                        GameEnd.lNormalGameScore[m_cbProvideUser] -= cbChiHuOrder;
+//                        GameEnd.lNormalGameScore[i] += cbChiHuOrder;
+//                        //记录马积分
+//                        GameEnd.lMaGameScore[m_cbLastBankerUser] -= cbMaList[m_cbProvideUser] * cbChiHuOrder;
+//                        GameEnd.lMaGameScore[i] += cbMaList[m_cbProvideUser] * cbChiHuOrder;
+//                        GameEnd.lMaGameScore[m_cbProvideUser] -= cbMaList[i] * cbChiHuOrder;
+//                        GameEnd.lMaGameScore[m_cbLastBankerUser] += cbMaList[i] * cbChiHuOrder;
+//
+//                        //抢杠全包
+//                        if ((m_llHuRight[i] != 0x0) && (m_cbHuKind[i] & CHK_QG) != 0) {
+//                            for (int j = 0; j < m_CurrChair; j++) {
+//                                if (j != i && j != m_cbProvideUser) {
+//                                    GameEnd.lGameScore[m_cbProvideUser] -= ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    GameEnd.lGameScore[i] += ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    //===================计算马分数开始=============================
+//                                    //输分的马
+//                                    GameEnd.lGameScore[m_cbLastBankerUser] -= cbMaList[m_cbProvideUser] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    GameEnd.lGameScore[i] += cbMaList[m_cbProvideUser] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    //赢分的马
+//                                    GameEnd.lGameScore[m_cbProvideUser] -= cbMaList[i] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    GameEnd.lGameScore[m_cbLastBankerUser] += cbMaList[i] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    //===================计算马分数结束=============================
+//                                    //记录常规积分
+//                                    GameEnd.lNormalGameScore[m_cbProvideUser] -= (cbMaList[j] + 1) * cbChiHuOrder;
+//                                    GameEnd.lNormalGameScore[i] += (cbMaList[j] + 1) * cbChiHuOrder;
+//                                    //记录马积分
+//                                    //输
+//                                    GameEnd.lMaGameScore[m_cbLastBankerUser] -= cbMaList[m_cbProvideUser] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    GameEnd.lMaGameScore[i] += cbMaList[m_cbProvideUser] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    //输
+//                                    GameEnd.lMaGameScore[m_cbProvideUser] -= cbMaList[i] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//                                    GameEnd.lMaGameScore[m_cbLastBankerUser] += cbMaList[i] * ((cbMaList[j] + 1) * cbChiHuOrder);
+//
+//                                }
+//                                if (j == m_cbProvideUser)    //马买到放炮的
+//                                {
+//                                    GameEnd.lGameScore[m_cbProvideUser] -= cbMaList[j] * cbChiHuOrder;
+//                                    GameEnd.lGameScore[i] += cbMaList[j] * cbChiHuOrder;
+//                                    //===================计算马分数开始=============================
+//                                    //输分的马
+//                                    GameEnd.lGameScore[m_cbLastBankerUser] -= cbMaList[m_cbProvideUser] * cbMaList[j] * cbChiHuOrder;
+//                                    GameEnd.lGameScore[i] += cbMaList[m_cbProvideUser] * cbMaList[j] * cbChiHuOrder;
+//                                    //赢分的马
+//                                    GameEnd.lGameScore[m_cbProvideUser] -= cbMaList[i] * cbMaList[j] * cbChiHuOrder;
+//                                    GameEnd.lGameScore[m_cbLastBankerUser] += cbMaList[i] * cbMaList[j] * cbChiHuOrder;
+//                                    //===================计算马分数结束=============================
+//
+//                                    //记录常规积分
+//                                    GameEnd.lNormalGameScore[m_cbProvideUser] -= cbMaList[j] * cbChiHuOrder;
+//                                    GameEnd.lNormalGameScore[i] += cbMaList[j] * cbChiHuOrder;
+//                                    //记录马积分
+//                                    //输
+//                                    GameEnd.lMaGameScore[m_cbLastBankerUser] -= cbMaList[m_cbProvideUser] * cbMaList[j] * cbChiHuOrder;
+//                                    GameEnd.lMaGameScore[i] += cbMaList[m_cbProvideUser] * cbMaList[j] * cbChiHuOrder;
+//                                    //赢
+//                                    GameEnd.lMaGameScore[m_cbProvideUser] -= cbMaList[i] * cbMaList[j] * cbChiHuOrder;
+//                                    GameEnd.lMaGameScore[m_cbLastBankerUser] += cbMaList[i] * cbMaList[j] * cbChiHuOrder;
+//
+//                                }
+//                            }
+//                        }
+//                    }
+//                    int cbDistanceTemp = ((m_cbProvideUser < i) ? (i - m_cbProvideUser) : (i + 4 - m_cbProvideUser));
+//                    if (cbDistance < cbDistanceTemp) {  //一炮多响定庄
+//                        cbDistance = cbDistanceTemp;
+//                        m_cbBankerUser = i;    //庄家设置为离自己最近的胡牌玩家
+//                    }
+//                }
+//            }
+        }
+
+//        } else {//流局
+//            GameEnd.cbHuUser = 0x00;        //没人胡牌
+//        }
+        //==================================计算桌子总分===========================================
+        for (int i = 0; i < GAME_PLAYER; i++) {
+            m_lGameScoreTable[i] += GameEnd.lGameScore[i];
+        }
+        for (int i = 0; i < GAME_PLAYER; i++) {    //赋值总分
+            GameEnd.lGameScoreTable[i] = m_lGameScoreTable[i];
+        }
+        for (int i = 0; i < m_CurrChair; i++) {
+            m_pIPlayer[i].getGameEngineEventListener().onGameEndEvent(GameEnd);   //游戏结束事件
+        }
+        return true;
+    }
+
+
 }

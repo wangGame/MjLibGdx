@@ -87,9 +87,9 @@ public class GameLogic {
     public static class TagWeaveItem {
         public int cbWeaveKind;                        //组合类型
         public int cbCenterCard;                        //中心扑克
-        public int cbPublicCard;                        //公开标志
+        public boolean cbPublicCard;                        //公开标志
         public int cbProvideUser;                        //供应用户
-        public int cbValid;                            //有效标识
+        public boolean cbValid;                            //有效标识
     };
 
     //杠牌结果
@@ -113,7 +113,7 @@ public class GameLogic {
     };
 //////////////////////////////////////////////////////////////////////////
     //数组说明
-    ArrayList<tagAnalyseItem> CAnalyseItemArray;
+    ArrayList<tagAnalyseItem> CAnalyseItemArray = new ArrayList<>();
 //    private  static int m_cbCardDataArray[] = new int[MAX_REPERTORY];    //扑克数据
     public int[] shuffle(int cbCardData[], int cbMaxCount){
         int []cbCardDataTemp = new int[m_cbCardDataArray.length];
@@ -138,7 +138,7 @@ public class GameLogic {
         }
         return false;
     }//删除扑克
-    boolean removeCard(int cbCardIndex[], int cbRemoveCard[], int cbRemoveCount){
+    public boolean removeCard(int cbCardIndex[], int cbRemoveCard[], int cbRemoveCount){
 
         for (int i = 0; i < cbRemoveCount; i++) {
             int cbRemoveIndex = switchToCardIndex(cbRemoveCard[i]);
@@ -181,7 +181,7 @@ public class GameLogic {
         }
         return true;
     } //删除扑克
-    boolean removeAllCard(int cbCardIndex[], int cbRemoveCard){
+    public boolean removeAllCard(int cbCardIndex[], int cbRemoveCard){
         int cbRemoveIndex = switchToCardIndex(cbRemoveCard);
         cbCardIndex[cbRemoveIndex] = 0;
         return true;
