@@ -36,7 +36,7 @@ public class GameCmd {
     };
 
     //发牌命令
-    public class CMD_S_SendCard {
+    public static class CMD_S_SendCard {
         public int cbCardData;                            //扑克数据
         public int cbActionMask;                        //动作掩码
         public int cbCurrentUser;                        //当前用户
@@ -47,7 +47,7 @@ public class GameCmd {
 
 
     //操作提示
-    public class CMD_S_OperateNotify {
+    public static class CMD_S_OperateNotify {
         public int cbResumeUser;                        //还原用户
         public int cbActionMask;                        //动作掩码
         public int cbActionCard;                        //动作扑克
@@ -56,7 +56,7 @@ public class GameCmd {
     };
 
     //操作结果
-    public class CMD_S_OperateResult {
+    public static class CMD_S_OperateResult {
         public int cbOperateUser;                        //操作用户
         public int cbProvideUser;                        //供应用户
         public int cbOperateCode;                        //操作代码

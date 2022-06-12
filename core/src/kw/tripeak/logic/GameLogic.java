@@ -11,7 +11,7 @@ import static kw.tripeak.constant.Constant.MAX_INDEX;
 public class GameLogic {
 
     final int m_cbCardDataArray[] = {
-        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,                        //筒子
+                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,                        //筒子
                 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,                        //筒子
                 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,                        //筒子
                 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,                        //筒子
@@ -93,7 +93,7 @@ public class GameLogic {
     };
 
     //杠牌结果
-    public class tagGangCardResult {
+    public static class tagGangCardResult {
         public int cbCardCount;                        //扑克数目
         public int cbCardData[] = new int[MAX_WEAVE];                //扑克数据
         public int cbPublic[] = new int[MAX_WEAVE];;                //公开标识
@@ -107,17 +107,18 @@ public class GameLogic {
     };
 
     //听牌
-    public class tagTingResult{
-        int cbTingCount;                           //听牌数量
-        int cbTingCard[] = new int[MAX_WEAVE];;                 //听的牌
+    public static class tagTingResult{
+        public int cbTingCount;                           //听牌数量
+        public int cbTingCard[] = new int[MAX_WEAVE];;                 //听的牌
     };
-//////////////////////////////////////////////////////////////////////////
+
     //数组说明
-    ArrayList<tagAnalyseItem> CAnalyseItemArray = new ArrayList<>();
-//    private  static int m_cbCardDataArray[] = new int[MAX_REPERTORY];    //扑克数据
+    ArrayList<tagAnalyseItem> CAnalyseItemArray = new ArrayList<>(); //扑克数据
+//----------------------------------------------------------------------
+
     public int[] shuffle(int cbCardData[], int cbMaxCount){
+        //牌面    将牌放入到临时数组中
         int []cbCardDataTemp = new int[m_cbCardDataArray.length];
-//        Arrays.copy(m_cbCardDataArray,cbCardDataTemp)
         int index = 0;
         for (int i : m_cbCardDataArray) {
             cbCardDataTemp[index++] = i;
@@ -128,18 +129,24 @@ public class GameLogic {
             cbCardData[cbRandCount++] = cbCardDataTemp[cbPosition];
             cbCardDataTemp[cbPosition] = cbCardDataTemp[cbMaxCount - cbRandCount];
         } while (cbRandCount < cbMaxCount);
-        return cbCardDataTemp;
+        return cbCardData;
     }//洗牌
+
+//    ---------------------------------------------------------------
+
+    //删除用户牌
     public boolean removeCard(int cbCardIndex[], int cbRemoveCard){
         int cbRemoveIndex = switchToCardIndex(cbRemoveCard);     //删除扑克
+        if (cbRemoveIndex<0)return false;
         if (cbCardIndex[cbRemoveIndex] > 0) {
             cbCardIndex[cbRemoveIndex]--;
             return true;
         }
         return false;
     }//删除扑克
-    public boolean removeCard(int cbCardIndex[], int cbRemoveCard[], int cbRemoveCount){
+//    ---------------------------------------------------------------------------
 
+    public boolean removeCard(int cbCardIndex[], int cbRemoveCard[], int cbRemoveCount){
         for (int i = 0; i < cbRemoveCount; i++) {
             int cbRemoveIndex = switchToCardIndex(cbRemoveCard[i]);
             if (cbCardIndex[cbRemoveIndex] == 0) {
@@ -154,6 +161,7 @@ public class GameLogic {
         }
         return true;
     } //删除扑克
+
     boolean removeCard(int cbCardData[], int cbCardCount, int cbRemoveCard[], int cbRemoveCount){
         //定义变量
         int cbDeleteCount = 0, cbTempCardData[] = new int[MAX_COUNT];
@@ -181,25 +189,29 @@ public class GameLogic {
         }
         return true;
     } //删除扑克
+
     public boolean removeAllCard(int cbCardIndex[], int cbRemoveCard){
         int cbRemoveIndex = switchToCardIndex(cbRemoveCard);
         cbCardIndex[cbRemoveIndex] = 0;
         return true;
     }   //移除指定的牌
+
     //内部函数
-    boolean isValidCard(int cbCardData){
+    public boolean isValidCard(int cbCardData){
         int cbValue = (cbCardData & MASK_VALUE);
         int cbColor = ((cbCardData & MASK_COLOR) >> 4);
-        return (((cbValue >= 1) && (cbValue <= 9) && (cbColor <= 2)) || ((cbValue >= 1) && (cbValue <= 7) && (cbColor == 3)));
+        return (((cbValue >= 1) && (cbValue <= 9) && (cbColor <= 2))
+                || ((cbValue >= 1) && (cbValue <= 7) && (cbColor == 3)));
     }   //有效判断
-    int switchToCardData(int cbCardIndex){
+
+    private int switchToCardData(int cbCardIndex){
         return ((cbCardIndex / 9) << 4) | (cbCardIndex % 9 + 1);
-//        return 0;
     } //扑克转换
+
     public int switchToCardIndex(int cbCardData){
         return ((cbCardData & MASK_COLOR) >> 4) * 9 + (cbCardData & MASK_VALUE) - 1;
-//        return 0;
     }  //扑克转换
+
     public int switchToCardData(int cbCardIndex[], int cbCardData[], int bMaxCount){
         int bPosition = 0;
         for (int i = 0; i < MAX_INDEX; i++) {
@@ -212,8 +224,6 @@ public class GameLogic {
         return bPosition;
     } //扑克转换
 
-
-
     public int switchToCardIndex(int cbCardData[], int cbCardCount, int cbCardIndex[]){
 //        memset(cbCardIndex, 0, sizeof(int) * MAX_INDEX);
         //转换扑克
@@ -222,6 +232,7 @@ public class GameLogic {
         }
         return cbCardCount;
     } //扑克转换
+
     int getCardCount(int cbCardIndex[]){
         int cbCardCount = 0;
         for (int i = 0; i < MAX_INDEX; i++) {
@@ -257,7 +268,7 @@ public class GameLogic {
     public int estimatePengCard(int cbCardIndex[], int cbCurrentCard){
         return ((cbCardIndex[switchToCardIndex(cbCurrentCard)] >= 2) ? WIK_P : WIK_NULL);
     }//碰牌判断
-    int estimateGangCard(int cbCardIndex[], int cbCurrentCard){
+    public int estimateGangCard(int cbCardIndex[], int cbCurrentCard){
         return ((cbCardIndex[switchToCardIndex(cbCurrentCard)] == 3) ? WIK_G : WIK_NULL);
     } //杠牌判断
     //等级函数
@@ -267,7 +278,7 @@ public class GameLogic {
         if ((cbUserAction & WIK_P) != 0x0) {return 1;} //碰牌优先级
         return 0;
     } //动作等级
-    int getHuFanShu( int huRight,  int huKind,  int huSpecial){
+    public int getHuFanShu( int huRight,  int huKind,  int huSpecial){
         return 1;
     } //胡牌分数
     public int analyseGangCard(int cbCardIndex[], TagWeaveItem WeaveItem[], int cbWeaveCount, tagGangCardResult GangCardResult){
@@ -540,7 +551,7 @@ public class GameLogic {
         return canHu(cbCardIndexTemp, cbCardCountTemp, cbCardIndex, cbCardCount, WeaveItem, cbWeaveCount, AnalyseItemArray);
     }
     //分析是否可以胡牌
-    boolean analyseTingCardResult(int cbCardIndex[], TagWeaveItem WeaveItem[], int cbWeaveCount , tagTingResult tingResult){
+    public boolean analyseTingCardResult(int cbCardIndex[], TagWeaveItem WeaveItem[], int cbWeaveCount , tagTingResult tingResult){
         int cbCardIndexTemp[] = new int[MAX_INDEX];
         for (int j = 0; j < MAX_INDEX; j++) {
             int cbCurrentCard = switchToCardData(j);

@@ -1,6 +1,5 @@
 package kw.tripeak.screen;
 
-//import static com.sun.org.apache.xalan.internal.xsltc.compiler.util.Type.Node;
 import static kw.tripeak.cmd.GameCmd.MAX_COUNT;
 import static kw.tripeak.constant.Constant.GAME_PLAYER;
 import static kw.tripeak.constant.Constant.INVALID_CHAIR;
@@ -14,13 +13,16 @@ import static kw.tripeak.logic.GameLogic.WIK_H;
 import static kw.tripeak.logic.GameLogic.WIK_NULL;
 import static kw.tripeak.logic.GameLogic.WIK_P;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.SnapshotArray;
 import com.kw.gdx.BaseGame;
 import com.kw.gdx.annotation.ScreenResource;
@@ -36,16 +38,17 @@ import kw.tripeak.logic.GameLogic;
 import kw.tripeak.play.AIPlayer;
 import kw.tripeak.play.IPlayer;
 import kw.tripeak.play.RealPlayer;
+import kw.tripeak.util.FvMask;
 import kw.tripeak.util.UIHelper;
 
 @ScreenResource("cocos/GameLayer.json")
-public class MainScreen extends BaseScreen implements IGameEngineEventListener{
+public class MainScreen extends BaseScreen implements IGameEngineEventListener {
     //游戏引擎
-    GameEngine m_GameEngine;
+    private GameEngine m_GameEngine;
     //游戏逻辑
-    GameLogic m_GameLogic;
+    private GameLogic m_GameLogic;
     //头像信息节点
-    Group m_FaceFrame[] = new Group[4];
+    private Group m_FaceFrame[] = new Group[4];
     //玩家牌的区域
     Group m_PlayerPanel[] = new Group[4];
     //全部玩家
@@ -53,7 +56,7 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
     //操作组
     Group m_pOperateNotifyGroup;
     //正在出牌的节点
-    Group m_pOutCard;
+    Actor m_pOutCard;
     //剩余牌数量
     Label m_pTextCardNum;
     //当前玩家数量
@@ -86,7 +89,6 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
     //偏移
     float m_outY = 30;
     float m_cardPosY = 0.0f;
-
     Group m_Player;
 
     public MainScreen(BaseGame game) {
@@ -99,24 +101,25 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
         initInstance();
         initGame();
         initLayer();
+        //通过延迟的方式来模拟用户的加入
         for (int i = 0; i < 3; i++) {
             aiEnterGame();
         }
 
-        initUI();
-//        showAndUpdateDiscardCard();
+        showAndUpdateHandCard();
+        showAndUpdateDiscardCard();
     }
 
     private int cardPosition;
 
-    private void initUI() {
+    private void showAndUpdateHandCard() {
 //        m_GameEngine.onGameStart();
         int[] m_cbRepertoryCard = m_GameEngine.m_cbRepertoryCard;
         int index = 0;
         for (int i = 0; i < m_cbCardIndex.length; i++) {
             int viewChairID = switchViewChairID(i);
-            viewChairID = i;
-            System.out.println(viewChairID);
+//            viewChairID = i;
+//            System.out.println(viewChairID);
             int cbWeaveItemCount = m_cbWeaveItemCount[i];
             int bCardData[] = new int[MAX_COUNT];  //手上的牌
 //            m_GameLogic.switchToCardData(m_cbCardIndex[i], bCardData, MAX_COUNT);
@@ -125,60 +128,58 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
             }
             int x = 0;
 //            switch(viewChairID){
-                if (viewChairID == 0) {
-                    Group handCard_0 = m_PlayerPanel[viewChairID].findActor("HandCard_0");
-                    Group comb_0 = m_PlayerPanel[viewChairID].findActor("comb_0");
+            if (viewChairID == 0) {
+                Group handCard_0 = m_PlayerPanel[viewChairID].findActor("HandCard_0");
+                Group comb_0 = m_PlayerPanel[viewChairID].findActor("comb_0");
 
-                    handCard_0.clearChildren();
-                    comb_0.clearChildren();
-                    for (int i1 = 0; i1 < m_cbWeaveItemCount.length; i1++) {
-                        GameLogic.TagWeaveItem weaveItem = new GameLogic.TagWeaveItem();
+                handCard_0.clearChildren();
+                comb_0.clearChildren();
+                for (int i1 = 0; i1 < m_cbWeaveItemCount.length; i1++) {
+                    GameLogic.TagWeaveItem weaveItem = new GameLogic.TagWeaveItem();
 //                        weaveItem.
-                    }
-                    for (int i1 = 0; i1 < MAX_COUNT - 1 - (3 * cbWeaveItemCount); i1++) {
-                        Image pCard = createHandCardImageView(viewChairID, bCardData[i1]);
-                        pCard.setOrigin(0, 0);
-                        pCard.setPosition(x, 0);
-                        pCard.setTouchable(Touchable.enabled);
-//                        pCard->se(bCardData[i1]);
-                        pCard.setName("bt_card_" + (int) bCardData[i1]);
-//                        pCard->addTouchEventListener(CC_CALLBACK_2(GameLayer::onCardTouch, this));
-                        handCard_0.addActor(pCard);
-                        x += 76;
-
-                    }
                 }
-                if (viewChairID == 1) {
-                    Group handCard_0 = m_PlayerPanel[viewChairID].findActor("HandCard_1");
-                    Group comb_0 = m_PlayerPanel[viewChairID].findActor("comb_1");
+                for (int i1 = 0; i1 < MAX_COUNT - 1 - (3 * cbWeaveItemCount); i1++) {
+                    Image pCard = createHandCardImageView(viewChairID, bCardData[i1]);
+                    pCard.setOrigin(0, 0);
+                    pCard.setPosition(x, 0);
+                    pCard.setTouchable(Touchable.enabled);
+//                        pCard->se(bCardData[i1]);
+                    pCard.setName("bt_card_" + (int) bCardData[i1]);
+                    pCard.addListener(clickListener);
+//                        pCard->addTouchEventListener(CC_CALLBACK_2(GameLayer::onCardTouch, this));
+                    handCard_0.addActor(pCard);
+                    x += 76;
 
-                    System.out.println(viewChairID);
-                        if (handCard_0==null)continue;
-                    handCard_0.clearChildren();
-                    comb_0.clearChildren();
-                    for (int i1 = 0; i1 < m_cbWeaveItemCount.length; i1++) {
-                        GameLogic.TagWeaveItem weaveItem = new GameLogic.TagWeaveItem();
+                }
+            }
+            if (viewChairID == 1) {
+                Group handCard_0 = m_PlayerPanel[viewChairID].findActor("HandCard_1");
+                Group comb_0 = m_PlayerPanel[viewChairID].findActor("comb_1");
+                if (handCard_0 == null) continue;
+                handCard_0.clearChildren();
+                comb_0.clearChildren();
+                for (int i1 = 0; i1 < m_cbWeaveItemCount.length; i1++) {
+                    GameLogic.TagWeaveItem weaveItem = new GameLogic.TagWeaveItem();
 //                        weaveItem.
-                    }
-                    for (int i1 = 0; i1 < MAX_COUNT - 1 - (3 * cbWeaveItemCount); i1++) {
-                        Image pCard = createHandCardImageView(viewChairID, bCardData[i1]);
-                        pCard.setOrigin(0, 0);
-                        pCard.setPosition(0, x);
-                        pCard.setTouchable(Touchable.enabled);
-//                        pCard->se(bCardData[i1]);
-                        pCard.setName("bt_card_" + (int) bCardData[i1]);
-//                        pCard->addTouchEventListener(CC_CALLBACK_2(GameLayer::onCardTouch, this));
-                        handCard_0.addActor(pCard);
-                        x += 40;
-                    }
                 }
+                for (int i1 = 0; i1 < MAX_COUNT - 1 - (3 * cbWeaveItemCount); i1++) {
+                    Image pCard = createHandCardImageView(viewChairID, bCardData[i1]);
+                    pCard.setOrigin(0, 0);
+                    pCard.setPosition(0, x);
+                    pCard.setTouchable(Touchable.enabled);
+//                        pCard->se(bCardData[i1]);
+                    pCard.setName("bt_card_" + (int) bCardData[i1]);
+                    pCard.addListener(clickListener);
+//                        pCard->addTouchEventListener(CC_CALLBACK_2(GameLayer::onCardTouch, this));
+                    handCard_0.addActor(pCard);
+                    x += 40;
+                }
+            }
 
             if (viewChairID == 2) {
                 Group handCard_0 = m_PlayerPanel[viewChairID].findActor("HandCard_2");
                 Group comb_0 = m_PlayerPanel[viewChairID].findActor("comb_2");
-
-                System.out.println(viewChairID);
-                if (handCard_0==null)continue;
+                if (handCard_0 == null) continue;
                 handCard_0.clearChildren();
                 comb_0.clearChildren();
                 for (int i1 = 0; i1 < m_cbWeaveItemCount.length; i1++) {
@@ -193,6 +194,7 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
 //                        pCard->se(bCardData[i1]);
                     pCard.setName("bt_card_" + (int) bCardData[i1]);
 //                        pCard->addTouchEventListener(CC_CALLBACK_2(GameLayer::onCardTouch, this));
+                    pCard.addListener(clickListener);
                     handCard_0.addActor(pCard);
                     x += 76;
                 }
@@ -200,9 +202,7 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
             if (viewChairID == 3) {
                 Group handCard_0 = m_PlayerPanel[viewChairID].findActor("HandCard_3");
                 Group comb_0 = m_PlayerPanel[viewChairID].findActor("comb_3");
-
-                System.out.println(viewChairID);
-                if (handCard_0==null)continue;
+                if (handCard_0 == null) continue;
                 handCard_0.clearChildren();
                 comb_0.clearChildren();
                 for (int i1 = 0; i1 < m_cbWeaveItemCount.length; i1++) {
@@ -216,10 +216,10 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
                     pCard.setTouchable(Touchable.enabled);
 //                        pCard->se(bCardData[i1]);
                     pCard.setName("bt_card_" + (int) bCardData[i1]);
+                    pCard.addListener(clickListener);
 //                        pCard->addTouchEventListener(CC_CALLBACK_2(GameLayer::onCardTouch, this));
                     handCard_0.addActor(pCard);
                     x += 40;
-                    System.out.println("=======================");
                 }
             }
 
@@ -247,16 +247,17 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
     }
 
     private Image createHandCardImageView(int viewChairID, int bCardDatum) {
-        return new Image(Asset.getAsset().getTexture(getHandCardImagePath(viewChairID,bCardDatum)));
+        return new Image(Asset.getAsset().getTexture(getHandCardImagePath(viewChairID, bCardDatum)));
     }
 
 
-/**
- * 手上的牌路径
- * @param cbViewID
- * @param cbData
- * @return
- */
+    /**
+     * 手上的牌路径
+     *
+     * @param cbViewID
+     * @param cbData
+     * @return
+     */
     public String getHandCardImagePath(int cbViewID, int cbData) {
         String strImagePath = "";
         switch (cbViewID) {
@@ -286,9 +287,9 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
     }
 
 
-
     /**
      * 椅子视图切换成界面视图
+     *
      * @param cbChairID
      * @return
      */
@@ -303,8 +304,8 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
         this.m_GameLogic = new GameLogic();
         this.m_bOperate = false;
         this.m_bMove = false;
-        m_WeaveItemArray = new GameLogic.TagWeaveItem[GAME_PLAYER][MAX_WEAVE];
-        m_iOutCardTimeOut = 30;
+        this.m_WeaveItemArray = new GameLogic.TagWeaveItem[GAME_PLAYER][MAX_WEAVE];
+        this.m_iOutCardTimeOut = 30;
     }
 
     void initGame() {
@@ -333,8 +334,7 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
         m_pOperateNotifyGroup = (Group) UIHelper.seekNodeByTag(m_Player, "OperateNotifyGroup");
 //        还剩多少牌了
         m_pTextCardNum = (Label) UIHelper.seekNodeByTag(m_Player, "Text_LeftCard");   //操作节点
-
-        RealPlayer pIPlayer = new RealPlayer(IPlayer.PlayerSex.MALE,this);
+        RealPlayer pIPlayer = new RealPlayer(IPlayer.PlayerSex.MALE, this);
         m_GameEngine.onUserEnter(pIPlayer);    //玩家加入游戏
     }
 
@@ -441,7 +441,7 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
     }
 
     //显示手上的牌
-    boolean showAndUpdateDiscardCard(){
+    boolean showAndUpdateDiscardCard() {
         for (int cbChairID = 0; cbChairID < m_CurPlayer; cbChairID++) {
             int cbViewID = switchViewChairID(cbChairID);
             switch (cbViewID) {
@@ -562,7 +562,7 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
         /// </summary>
         /// <param name="pIPlayer"></param>
         /// <returns></returns>
-        for (int  i = 0; i < m_CurPlayer; i++) {           //显示头像
+        for (int i = 0; i < m_CurPlayer; i++) {           //显示头像
             Image pImageHeader = m_FaceFrame[i].findActor("Image_Header");  //头像
             Label pTextScore = m_FaceFrame[i].findActor("Text_Score");  //头像
             pTextScore.setText("0");     //进来分数为0
@@ -577,11 +577,20 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
 
     @Override
     public boolean onGameStartEvent(GameCmd.CMD_S_GameStart GameStart) {
-        return false;
+        initGame();
+        m_cbLeftCardCount = GameStart.cbLeftCardCount;
+        m_cbBankerChair = GameStart.cbBankerUser;
+        m_GameLogic.switchToCardIndex(GameStart.cbCardData, MAX_COUNT - 1, m_cbCardIndex[m_MeChairID]);
+        //界面显示
+        m_pTextCardNum.setText(m_cbLeftCardCount + "");
+//        showAndUpdateHandCard();
+        showAndUpdateDiscardCard();
+        return true;
     }
 
     /**
      * 发牌事件
+     *
      * @param SendCard
      * @return
      */
@@ -597,27 +606,525 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
 
     @Override
     public boolean onOutCardEvent(GameCmd.CMD_S_OutCard OutCard) {
-        return false;
+        if (OutCard.cbOutCardUser == m_MeChairID) {
+            m_cbCardIndex[m_MeChairID][m_GameLogic.switchToCardIndex(OutCard.cbOutCardData)]--;
+        }
+        m_cbDiscardCard[OutCard.cbOutCardUser][m_cbDiscardCount[OutCard.cbOutCardUser]++] = OutCard.cbOutCardData;
+        int cbViewID = switchViewChairID(OutCard.cbOutCardUser);
+//        cocostudio::timeline::ActionTimeline *action = CSLoader::createTimeline("res/SignAnim.csb");
+//        action->gotoFrameAndPlay(0, 10, true);
+//        Node *pSignNode = CSLoader::createNode("res/SignAnim.csb");
+//        pSignNode->setName("SignAnim");
+//        std::vector<Node *> aChildren;
+//        aChildren.clear();
+//        UIHelper::getChildren(m_pLayer, "SignAnim", aChildren);
+//        for (auto &subWidget : aChildren) {
+//            subWidget->removeFromParent();
+//        }
+        Image pRecvCard = (Image) UIHelper.seekNodeByName(m_PlayerPanel[cbViewID], "RecvCard_" + cbViewID);
+        if (pRecvCard != null) {
+            pRecvCard.setVisible(false);
+        }
+        switch (cbViewID) {
+            case 0: {
+                showAndUpdateHandCard();                     //更新手上的牌
+                Group pRecvCardList = (Group) UIHelper.seekNodeByName(m_PlayerPanel[cbViewID], "RecvHandCard_0");
+                pRecvCardList.clearChildren(); //移除出牌位置的牌
+                Group pDiscardCard0 = (Group) UIHelper.seekNodeByName(m_Player, "DiscardCard_0");//显示出的牌
+                pDiscardCard0.clearChildren();
+                int bDiscardCount = m_cbDiscardCount[OutCard.cbOutCardUser]; //12
+                float x = 0;
+                float y = 0;
+                for (int i = 0; i < bDiscardCount; i++) {
+                    int col = (i % 12);
+                    int row = (i / 12);
+                    x = (col == 0) ? 0 : x;  //X复位
+                    y = row * 90;
+                    Image pCard0 = createDiscardCardImageView(cbViewID, m_cbDiscardCard[OutCard.cbOutCardUser][i]);
+                    pCard0.setOrigin(0, 0);
+                    pCard0.setPosition(x, y);
+                    pCard0.setZIndex(10 - row);
+                    x += 76;
+                    if (i == bDiscardCount - 1) {   //最后一张，添加动画效果
+//                        pSignNode.set(Vec2(0.5, 0.5));
+//                        pSignNode->setPosition(Vec2(39, 110));
+//                        pCard0->addChild(pSignNode);
+//                        pSignNode->runAction(action);
+                    }
+                    pDiscardCard0.addActor(pCard0);
+                }
+                pDiscardCard0.setScale(0.7F, 0.7F);
+                //听牌判断
+                int cbWeaveItemCount = m_cbWeaveItemCount[OutCard.cbOutCardUser];
+                GameLogic.TagWeaveItem[] pTagWeaveItem = m_WeaveItemArray[OutCard.cbOutCardUser];
+                int[] cbCardIndex = m_cbCardIndex[OutCard.cbOutCardUser];
+                showTingResult(cbCardIndex, pTagWeaveItem, cbWeaveItemCount);
+                break;
+            }
+            case 1: {
+                //显示出的牌
+                Group pDiscardCard1 = m_Player.findActor("DiscardCard_1");
+                pDiscardCard1.clearChildren();
+                int bDiscardCount = m_cbDiscardCount[OutCard.cbOutCardUser]; //
+                float x = 0;
+                float y = 0;
+                for (int i = 0; i < bDiscardCount; i++) {
+                    int col = (i % 11);
+                    int row = (i / 11);
+                    y = (col == 0) ? 0 : y;  //X复位
+                    x = 116 * row;
+                    Image pCard1 = createDiscardCardImageView(cbViewID, m_cbDiscardCard[OutCard.cbOutCardUser][i]);
+                    pCard1.setOrigin(0, 0);
+                    pCard1.setPosition(x, 740 - y);
+                    pCard1.setZIndex(col);
+                    y += 74;
+//                    if (i == bDiscardCount - 1) {   //最后一张，添加动画效果
+//                        pSignNode.setO(Vec2(0.5, 0.5));
+//                        pSignNode.setPosition(Vec2(81, 110));
+//                        pCard1->addChild(pSignNode);
+//                        pSignNode->runAction(action);
+//                    }
+                    pDiscardCard1.addActor(pCard1);
+                }
+                pDiscardCard1.setScale(0.5F, 0.5F);
+                break;
+            }
+            case 2: {
+                Group pDiscardCard2 = m_Player.findActor("DiscardCard_2");
+                pDiscardCard2.clearChildren();
+                int bDiscardCount = m_cbDiscardCount[OutCard.cbOutCardUser]; //12
+                float x = 0;
+                float y = 0;
+                for (int i = 0; i < bDiscardCount; i++) {
+                    int col = (i % 12);
+                    int row = (i / 12);
+                    x = (col == 0) ? 0 : x;  //X复位
+                    y = 90 - row * 90;
+                    Image pCard2 = createDiscardCardImageView(cbViewID, m_cbDiscardCard[OutCard.cbOutCardUser][i]);
+                    pCard2.setOrigin(0, 0);
+                    pCard2.setPosition(x, y);
+                    pCard2.setZIndex(row);
+                    x += 76;
+//                    if (i == bDiscardCount - 1) {   //最后一张，添加动画效果
+//                        pSignNode->setAnchorPoint(Vec2(0.5, 0.5));
+//                        pSignNode->setPosition(Vec2(39, 59));
+//                        pCard2->addChild(pSignNode);
+//                        pSignNode->runAction(action);
+//                    }
+                    pDiscardCard2.addActor(pCard2);
+                }
+                pDiscardCard2.setScale(0.7F, 0.7F);
+
+                break;
+            }
+            case 3: {
+                //显示出的牌
+                Group pDiscardCard3 = m_Player.findActor("DiscardCard_3");
+                pDiscardCard3.clearChildren();
+                int bDiscardCount = m_cbDiscardCount[OutCard.cbOutCardUser]; //
+                float x = 0;
+                float y = 0;
+                for (int i = 0; i < bDiscardCount; i++) {
+                    int col = (i % 11);
+                    int row = (i / 11);
+                    y = (col == 0) ? 0 : y;  //X复位
+                    x = 240 - (116 * row);
+                    Image pCard3 = createDiscardCardImageView(cbViewID, m_cbDiscardCard[OutCard.cbOutCardUser][i]);
+                    pCard3.setOrigin(0, 0);
+                    pCard3.setPosition(x, y);
+                    pCard3.setZIndex(20 - col);
+                    y += 74;
+//                    if (i == bDiscardCount - 1) {   //最后一张，添加动画效果
+//                        pSignNode->setAnchorPoint(Vec2(0.5, 0.5));
+//                        pSignNode->setPosition(Vec2(39, 110));
+//                        pCard3->addChild(pSignNode);
+//                        pSignNode->runAction(action);
+//                    }
+                    pDiscardCard3.addActor(pCard3);
+                }
+                pDiscardCard3.setScale(0.5F, 0.5F);
+                break;
+            }
+            default:
+                break;
+        }
+        for (int j = 0; j < GAME_PLAYER; ++j) {   //发牌后隐藏导航
+            Image pHighlight = m_Player.findActor("Image_Wheel_" + j);
+            pHighlight.setVisible(false);
+        }
+//        playSound(utility::toString("raw/Mahjong/", (IPlayer::FEMALE == m_Players[OutCard.cbOutCardUser]->getSex() ? "female" : "male"), "/mjt", utility::toString((
+//                (OutCard.cbOutCardData & MASK_COLOR)
+//                        >> 4) + 1, "_", OutCard.cbOutCardData & MASK_VALUE), ".mp3"));    //播放牌的声音
+        return true;
     }
+
+
+    boolean showTingResult(int[] cbCardIndex, GameLogic.TagWeaveItem[] WeaveItem, int cbWeaveCount) {
+        GameLogic.tagTingResult tingResult = new GameLogic.tagTingResult();
+//        memset(&tingResult, 0, sizeof(tagTingResult));
+        Group pTingNode = m_PlayerPanel[m_MeChairID].findActor("ting_0");
+        if (m_GameLogic.analyseTingCardResult(cbCardIndex, WeaveItem, cbWeaveCount, tingResult)) {  //听牌
+            pTingNode.setVisible(true);
+            Group pTingCard = (Group) UIHelper.seekNodeByName(m_PlayerPanel[m_MeChairID], "ting_card");
+            pTingCard.clearChildren();
+            for (int i = 0; i < tingResult.cbTingCount; i++) {  //循环听的牌
+                Image pTingCardImage = createDiscardCardImageView(0, tingResult.cbTingCard[i]);
+                pTingCardImage.setOrigin(0, 0);
+                pTingCardImage.setPosition((76 * i + ((76.0f * 3) - (76.0f * tingResult.cbTingCount)) / 2.0f), 0);
+                pTingCard.addActor(pTingCardImage);
+            }
+        } else {
+            pTingNode.setVisible(false);
+        }
+        return true;
+    }
+
 
     @Override
     public boolean onOperateNotifyEvent(GameCmd.CMD_S_OperateNotify OperateNotify) {
-        return false;
+        return showOperateNotify(OperateNotify);
     }
 
     @Override
     public boolean onOperateResultEvent(GameCmd.CMD_S_OperateResult OperateResult) {
-        return false;
+        GameLogic.TagWeaveItem weaveItem = new GameLogic.TagWeaveItem();
+//        memset(&weaveItem, 0, sizeof(tagWeaveItem));
+        switch (OperateResult.cbOperateCode) {
+            case 0: {
+                break;
+            }
+            case 1: {
+                weaveItem.cbWeaveKind = WIK_P;
+                weaveItem.cbCenterCard = OperateResult.cbOperateCard;
+                weaveItem.cbPublicCard = true;
+                weaveItem.cbProvideUser = OperateResult.cbProvideUser;
+                weaveItem.cbValid = true;
+                m_WeaveItemArray[OperateResult.cbOperateUser][m_cbWeaveItemCount[OperateResult.cbOperateUser]++] = weaveItem;
+                if (OperateResult.cbOperateUser == m_MeChairID) {  //自己
+                    int cbReomveCard[] = {OperateResult.cbOperateCard, OperateResult.cbOperateCard};
+                    m_GameLogic.removeCard(m_cbCardIndex[OperateResult.cbOperateUser], cbReomveCard, cbReomveCard.length);
+                }
+                break;
+            }
+            case 2: {
+                weaveItem.cbWeaveKind = WIK_G;
+                weaveItem.cbCenterCard = OperateResult.cbOperateCard;
+                boolean cbPublicCard = (OperateResult.cbOperateUser == OperateResult.cbProvideUser) ? false : true;
+                int j = -1;
+                for (int i = 0; i < m_cbWeaveItemCount[OperateResult.cbOperateUser]; i++) {
+                    GameLogic.TagWeaveItem tempWeaveItem = m_WeaveItemArray[OperateResult.cbOperateUser][i];
+                    if (tempWeaveItem.cbCenterCard == OperateResult.cbOperateCard) {   //之前已经存在
+                        cbPublicCard = true;
+                        j = i;
+                    }
+                }
+                weaveItem.cbPublicCard = cbPublicCard;
+                weaveItem.cbProvideUser = OperateResult.cbProvideUser;
+                weaveItem.cbValid = true;
+                if (j == -1) {
+                    m_WeaveItemArray[OperateResult.cbOperateUser][m_cbWeaveItemCount[OperateResult.cbOperateUser]++] = weaveItem;
+                } else {
+                    m_WeaveItemArray[OperateResult.cbOperateUser][j] = weaveItem;
+                }
+                if (OperateResult.cbOperateUser == m_MeChairID) {  //自己
+                    m_GameLogic.removeAllCard(m_cbCardIndex[OperateResult.cbOperateUser], OperateResult.cbOperateCard);
+                }
+                break;
+            }
+            case 4: {
+                break;
+            }
+            default:
+                break;
+        }
+
+        //更新界面
+        int cbViewID = switchViewChairID(OperateResult.cbOperateUser);
+        switch (cbViewID) {
+            case 0: {   //自己操作反馈
+                m_pOperateNotifyGroup.clearChildren();
+                m_pOperateNotifyGroup.setVisible(false);
+                Image pHighlight = (Image) (UIHelper.seekNodeByName(m_Player, "Image_Wheel_0"));
+                pHighlight.setVisible(true);
+                break;
+            }
+            default:
+                break;
+        }
+        String strSex = (IPlayer.PlayerSex.FEMALE ==
+                m_Players[OperateResult.cbOperateUser].getSex() ? "female" : "male");
+        switch (OperateResult.cbOperateCode) {
+            case 0: {
+                break;
+            }
+            case 1: {
+//                playSound(utility::toString("raw/Mahjong/", strSex, "/peng.mp3"));
+                if (cbViewID == 0) {                    //如果是自己，碰完需要出牌
+                    int bTempCardData[] = new int[MAX_COUNT];   //手上的牌
+//                    memset(bTempCardData, 0, sizeof(bTempCardData));
+                    m_GameLogic.switchToCardData(m_cbCardIndex[OperateResult.cbOperateUser], bTempCardData, MAX_COUNT);
+                    int cbWeaveItemCount = m_cbWeaveItemCount[OperateResult.cbOperateUser]; //组合数量
+                    GameCmd.CMD_S_SendCard SendCard = new GameCmd.CMD_S_SendCard();
+//                    memset(&SendCard, 0, siz/eof(CMD_S_SendCard));
+                    SendCard.cbCurrentUser = OperateResult.cbOperateUser;
+                    SendCard.cbCardData = bTempCardData[MAX_COUNT - (cbWeaveItemCount * 3) - 1];
+                    showSendCard(SendCard);    //模拟发送一张牌
+                }
+                //移除桌上的哪张牌
+                m_cbDiscardCount[OperateResult.cbProvideUser]--;  //移除桌上的牌
+                showAndUpdateDiscardCard();
+                break;
+            }
+            case 2: {
+//                playSound(utility::toString("raw/Mahjong/", strSex, "/gang.mp3"));
+                if (OperateResult.cbProvideUser != OperateResult.cbOperateUser) {     //放的杠
+                    m_cbDiscardCount[OperateResult.cbProvideUser]--;  //移除桌上的牌
+                    showAndUpdateDiscardCard();
+                } else {                                                            //移除出牌位置的牌
+                    Group pRecvCardList = (Group) UIHelper.seekNodeByName(m_PlayerPanel[0], "RecvHandCard_0");
+                    pRecvCardList.clearChildren();
+                }
+                break;
+            }
+            case 4: { //胡牌动作放在游戏结束 信息中
+                if (OperateResult.cbOperateUser == OperateResult.cbProvideUser) {  //自摸
+//                    playSound(utility::toString("raw/Mahjong/", strSex, "/zimo.mp3"));
+                } else {
+//                    playSound(utility::toString("raw/Mahjong/", strSex, "/hu.mp3"));
+                }
+                break;
+            }
+            default:
+                break;
+        }
+//        showAndPlayOperateEffect(cbViewID, OperateResult.cbOperateCode, OperateResult.cbProvideUser == OperateResult.cbOperateUser);
+        showAndUpdateHandCard();
+        return true;
     }
 
     @Override
     public boolean onGameEndEvent(GameCmd.CMD_S_GameEnd GameEnd) {
-        return false;
+        showAndUpdateUserScore(GameEnd.lGameScoreTable);    //更新分数
+        for (int i = 0; i < GAME_PLAYER; i++) {                    //播放音效
+            if (FvMask.HasAny(GameEnd.cbHuUser, FvMask._MASK_(i))) {
+                String strSex = (IPlayer.PlayerSex.FEMALE ==
+                        m_Players[i].getSex() ? "female" : "male");
+                int cbViewID = switchViewChairID(i);
+                if (FvMask.HasAny(GameEnd.cbHuUser, FvMask._MASK_(GameEnd.cbProvideUser))) {  //自摸
+//                    playSound(utility::toString("raw/Mahjong/", strSex, "/zimo.mp3"));
+//                    showAndPlayOperateEffect(cbViewID, WIK_H, true); //播放自摸动画
+                } else {
+//                    playSound(utility::toString("raw/Mahjong/", strSex, "/hu.mp3"));
+//                    showAndPlayOperateEffect(cbViewID, WIK_H, false); //播放自摸动画
+                }
+            }
+        }
+
+        Group pTingNode = (Group) UIHelper.seekNodeByName(m_PlayerPanel[0], "ting_0");    //隐藏听牌
+        pTingNode.setVisible(false);
+        m_pOperateNotifyGroup.clearChildren();
+        m_pOperateNotifyGroup.setVisible(false);             //移除通知
+
+        //显示结算界面
+//        m_pGameOverNode = CSLoader::createNode("GameOverLayer.csb");
+//        m_pGameOverNode->setAnchorPoint(Vec2(0.5, 0.5));
+//        m_pGameOverNode->setPosition(GameSceneManager::getInstance()->getVisibleSize() / 2);
+//        m_pLayer->addChild(m_pGameOverNode);
+//        ui::Button *pOverClose = dynamic_cast<ui::Button *>(UIHelper::seekNodeByName(m_pGameOverNode, "Button_Over_Close"));    //关闭结算界面按钮
+//        pOverClose->addTouchEventListener(CC_CALLBACK_2(GameLayer::onTouch, this));
+//        ui::ImageView *pOverResultImage = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(m_pGameOverNode, "ImageView_Over_Result"));
+//        pOverResultImage->loadTexture((GameEnd.lGameScore[m_MeChairID] < 0) ? "res/GameOverLayer/result_lose.png" : "res/GameOverLayer/result_win.png");
+//        if (GameEnd.cbHuUser == 0x00) {
+//            pOverResultImage->loadTexture("res/GameOverLayer/result_draw.png");  //流局
+//        }
+//        //显示牌
+//        for (int i = 0; i < m_CurPlayer; i++) {
+//            int cbViewID = switchViewChairID(i);
+//            Node *pPlayerViewNode = UIHelper::seekNodeByName(m_pGameOverNode, "PlayerView_" + utility::toString((int) cbViewID));
+//            ui::ImageView *pOverImgHead = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(pPlayerViewNode, "ImageView_Over_Head")); //头像
+//            ui::Text *pOverScoreText = dynamic_cast<ui::Text *>(UIHelper::seekNodeByName(pPlayerViewNode, "Text_Over_Score"));       //分数
+//            pOverImgHead->loadTexture(utility::toString("res/GameLayer/im_defaulthead_", m_Players[i]->getSex() == IPlayer::FEMALE ? 0 : 1, ".png"));    //设置头像
+//            pOverScoreText->setString(((GameEnd.lGameScore[i] >= 0) ? utility::toString("+", GameEnd.lGameScore[i]) : utility::toString(GameEnd.lGameScore[i])));
+//            ui::Layout *pOverHandCard = dynamic_cast<ui::Layout *>(UIHelper::seekNodeByName(pPlayerViewNode, "Panel_Over_Hand_Card"));
+//            pOverHandCard->removeAllChildren();
+//            ui::ImageView *pOverHuCard = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(pPlayerViewNode, "ImageView_Over_Card"));  //胡的那张
+//            ui::ImageView *pOverHuFlag = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(pPlayerViewNode, "ImageView_Over_Hu"));  //胡的那张
+//            pOverHuCard->setVisible(false);
+//            pOverHuFlag->setVisible(false);
+//            if (m_cbBankerChair == i) { //庄
+//                ui::Layout *pOverPanelLeft = dynamic_cast<ui::Layout *>(UIHelper::seekNodeByName(pPlayerViewNode, "Panel_Over_Left"));
+//                ui::ImageView *pOverBanker = ui::ImageView::create("res/GameOverLayer/over_banker.png");
+//                pOverBanker->setAnchorPoint(Vec2(0.5, 0.5));
+//                pOverBanker->setPosition(Vec2(20, 96));
+//                pOverPanelLeft->addChild(pOverBanker);
+//            }
+//
+//            int cbWeaveCount = GameEnd.cbWeaveCount[i];
+//            if (FvMask::HasAny(GameEnd.cbHuUser, _MASK_(i))) {
+//                //胡牌手上移除胡的那张牌
+//                m_GameLogic->removeCard(GameEnd.cbCardData[i], GameEnd.cbCardCount[i], &GameEnd.cbHuCard, 1);
+//                GameEnd.cbCardCount[i]--;
+//                pOverHuCard->loadTexture(getDiscardCardImagePath(0, GameEnd.cbHuCard));
+//                pOverHuCard->setVisible(true);
+//                pOverHuFlag->setVisible(true);
+//            }
+//            float x = 0;
+//            for (int j = 0; j < cbWeaveCount; j++) {   //组合数量
+//                CMD_WeaveItem weaveItem = GameEnd.WeaveItemArray[i][j];
+//                Node *pWeaveNode = NULL;
+//                if (weaveItem.cbWeaveKind == WIK_G) {
+//                    pWeaveNode = CSLoader::createNode("res/Gang0.csb");
+//                }
+//                if (weaveItem.cbWeaveKind == WIK_P) {
+//                    pWeaveNode = CSLoader::createNode("res/Peng0.csb");
+//                }
+//                pWeaveNode->setScale(0.6f, 0.6f);
+//                pWeaveNode->setPosition(Vec2(x, 0));
+//            const std::string &strImagePath = getDiscardCardImagePath(0, weaveItem.cbCenterCard);
+//            const std::string &strBackImagePath = getDiscardCardImagePath(0, weaveItem.cbCenterCard);
+//                ui::ImageView *pImageRight = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(pWeaveNode, "Image_right"));
+//                ui::ImageView *pImageLeft = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(pWeaveNode, "Image_left"));
+//                ui::ImageView *pImageCenter = dynamic_cast<ui::ImageView *>(UIHelper::seekNodeByName(pWeaveNode, "Image_center"));
+//                pImageRight->loadTexture(strImagePath);
+//                pImageCenter->loadTexture(strImagePath);
+//                pImageLeft->loadTexture(strImagePath);
+//                int wProvideViewID = switchViewChairID(weaveItem.cbProvideUser);
+//                switch (cbViewID) {
+//                    case 0:
+//                        switch (wProvideViewID) {
+//                            case 0: {
+//                                if (weaveItem.cbPublicCard == FALSE) {    //暗杠
+//                                    pImageRight->loadTexture(strBackImagePath);
+//                                    pImageLeft->loadTexture(strBackImagePath);
+//                                }
+//                                break;
+//                            }
+//                            case 1: {
+//                                pImageLeft->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 2: {
+//                                pImageCenter->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 3: {
+//                                pImageRight->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            default:
+//                                break;
+//                        }
+//                        break;
+//                    case 1:
+//                        switch (wProvideViewID) {
+//                            case 0: {
+//                                pImageRight->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 1: {
+//                                if (weaveItem.cbPublicCard == FALSE) {    //暗杠
+//                                    pImageRight->loadTexture(strBackImagePath);
+//                                    pImageLeft->loadTexture(strBackImagePath);
+//                                }
+//                                break;
+//                            }
+//                            case 2: {
+//                                pImageLeft->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 3: {
+//                                pImageCenter->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            default:
+//                                break;
+//                        }
+//                        break;
+//                    case 2:
+//                        switch (wProvideViewID) {
+//                            case 0: {
+//                                pImageCenter->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 1: {
+//                                pImageLeft->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 2: {
+//                                if (weaveItem.cbPublicCard == FALSE) {    //暗杠
+//                                    pImageRight->loadTexture(strBackImagePath);
+//                                    pImageLeft->loadTexture(strBackImagePath);
+//                                }
+//                                break;
+//                            }
+//                            case 3: {
+//                                pImageRight->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            default:
+//                                break;
+//                        }
+//                        break;
+//                    case 3:
+//                        switch (wProvideViewID) {
+//                            case 0: {
+//                                pImageRight->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 1: {
+//                                pImageCenter->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 2: {
+//                                pImageLeft->loadTexture(strBackImagePath);
+//                                break;
+//                            }
+//                            case 3: {
+//                                if (weaveItem.cbPublicCard == FALSE) {    //暗杠
+//                                    pImageRight->loadTexture(strBackImagePath);
+//                                    pImageLeft->loadTexture(strBackImagePath);
+//                                }
+//                                break;
+//                            }
+//                            default:
+//                                break;
+//                        }
+//                        break;
+//                    default:
+//                        break;
+//                }
+//
+//                pOverHandCard.addActor(pWeaveNode);
+//                x += 132;
+//            }
+//            for (int j = 0; j < MAX_COUNT - 1 - (3 * cbWeaveCount); j++) {
+//                ui::ImageView *pCard = createDiscardCardImageView(0, GameEnd.cbCardData[i][j]);
+//                pCard->setAnchorPoint(Vec2(0, 0));
+//                pCard->setPosition(Vec2(x, 0));
+//                pCard->setScale(0.6f, 0.6f);
+//                pOverHandCard.(pCard);
+//                x += 43;
+//            }
+//        }
+
+        return true;
+    }
+
+    boolean showAndUpdateUserScore(int lGameScoreTable[]) {
+        for (int i = 0; i < GAME_PLAYER; i++) {
+            int cbViewID = switchViewChairID(i);
+            Label pScore = (Label) UIHelper.seekNodeByName(m_FaceFrame[cbViewID], "Gold_Label");
+            if (pScore != null) {
+                pScore.setText("" + lGameScoreTable[i]);
+            }
+        }
+        return true;
     }
 
 
     /**
      * 发牌显示
+     *
      * @param SendCard
      * @return
      */
@@ -627,7 +1134,7 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
 //        sendCardTimerUpdate();
 //        sendCardTimerUpdate), 1.0f);    //出牌计时
 //        sendCardTimerUpdate(1.0f);//立即执行
-        m_pTextCardNum.setText(m_cbLeftCardCount+"");
+        m_pTextCardNum.setText(m_cbLeftCardCount + "");
         int cbViewID = switchViewChairID(SendCard.cbCurrentUser);
         m_bOperate = false;
         switch (cbViewID) {
@@ -641,13 +1148,13 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
                 pCard.setPosition(0, 0);
                 pCard.setTouchable(Touchable.enabled);
 //                pCard.setTag(SendCard.cbCardData);
-                pCard.setName("bt_card_"+(int) SendCard.cbCardData);
-//                pCard->addTouchEventListener(CC_CALLBACK_2(GameLayer::onCardTouch, this));
+                pCard.setName("bt_card_" + (int) SendCard.cbCardData);
+                pCard.addListener(clickListener);
                 pRecvCardList.addActor(pCard);
                 m_PlayerPanel[cbViewID].findActor("ting_0").setVisible(false);
 //                UIHelper::seekNodeByName(m_PlayerPanel[cbViewID], "ting_0")->setVisible(false); //拿到牌，隐藏听牌界面
                 if (SendCard.cbActionMask != WIK_NULL) {//发的牌存在动作，模拟发送操作通知
-                    GameCmd.CMD_S_OperateNotify OperateNotify = new GameCmd().new CMD_S_OperateNotify();
+                    GameCmd.CMD_S_OperateNotify OperateNotify = new GameCmd.CMD_S_OperateNotify();
 //                    memset(&OperateNotify, 0, sizeof(CMD_S_OperateNotify));
                     OperateNotify.cbActionMask = SendCard.cbActionMask;
                     OperateNotify.cbActionCard = SendCard.cbCardData;
@@ -665,13 +1172,13 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
                 break;
         }
         for (int i = 0; i < GAME_PLAYER; i++) {
-            m_PlayerPanel[cbViewID].findActor("RecvCard_"+i);
-            Image pRecvCard = m_PlayerPanel[cbViewID].findActor("RecvCard_"+i);
-            if (pRecvCard!=null) {
+            m_PlayerPanel[cbViewID].findActor("RecvCard_" + i);
+            Image pRecvCard = m_PlayerPanel[cbViewID].findActor("RecvCard_" + i);
+            if (pRecvCard != null) {
                 pRecvCard.setVisible(cbViewID == i);
             }
-            Image pHighlight = m_Player.findActor("Image_Wheel_"+ i);
-            if (pHighlight!=null) {
+            Image pHighlight = m_Player.findActor("Image_Wheel_" + i);
+            if (pHighlight != null) {
                 pHighlight.setVisible(cbViewID == i);
             }
         }
@@ -679,9 +1186,9 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
     }
 
 
-
     /**
      * 展示操作层
+     *
      * @param OperateNotify
      * @return
      */
@@ -737,33 +1244,33 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
 
 
     /**
- *
- * 桌面显示的牌
- * @param cbViewID
- * @param cbData
- * @return
- */
+     * 桌面显示的牌
+     *
+     * @param cbViewID
+     * @param cbData
+     * @return
+     */
     String getDiscardCardImagePath(int cbViewID, int cbData) {
         String strImagePath = "";
         switch (cbViewID) {
             case 0: {
-                strImagePath = "res/GameLayer/Mahjong/2/mingmah_" + (((cbData & MASK_COLOR)
-                        >> 4) + 1)+ (cbData & MASK_VALUE) + ".png";
+                strImagePath = "2/mingmah_" + (((cbData & MASK_COLOR)
+                        >> 4) + 1) + (cbData & MASK_VALUE) + ".png";
                 break;
             }
             case 1: {
-                strImagePath = "res/GameLayer/Mahjong/3/mingmah_" + (((cbData & MASK_COLOR)
-                        >> 4) + 1)+ (cbData & MASK_VALUE) + ".png";
+                strImagePath = "2/mingmah_" + (((cbData & MASK_COLOR)
+                        >> 4) + 1) + (cbData & MASK_VALUE) + ".png";
                 break;
             }
             case 2: {
-                strImagePath = "res/GameLayer/Mahjong/2/mingmah_" + (((cbData & MASK_COLOR)
-                        >> 4) + 1)+ (cbData & MASK_VALUE) + ".png";
+                strImagePath = "2/mingmah_" + (((cbData & MASK_COLOR)
+                        >> 4) + 1) + (cbData & MASK_VALUE) + ".png";
                 break;
             }
             case 3: {
-                strImagePath = "res/GameLayer/Mahjong/1/mingmah_" + (((cbData & MASK_COLOR)
-                        >> 4) + 1)+ (cbData & MASK_VALUE) + ".png";
+                strImagePath = "2/mingmah_" + (((cbData & MASK_COLOR)
+                        >> 4) + 1) + (cbData & MASK_VALUE) + ".png";
                 break;
             }
             default:
@@ -774,8 +1281,8 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
 
 
     /**
-     *
      * 背面
+     *
      * @param cbViewID
      * @return
      */
@@ -804,229 +1311,163 @@ public class MainScreen extends BaseScreen implements IGameEngineEventListener{
         return strImagePath;
     }
 
+    public void exit() {
+        Gdx.app.exit();
+    }
 
-//    //显示桌上的牌
-//    boolean showSendCard(GameCmd.CMD_S_SendCard SendCard){
-//        return false;
-//    }                                     //发牌显示
-//    boolean showOperateNotify(GameCmd.CMD_S_OperateNotify OperateNotify){
-//        if (OperateNotify.cbActionMask == WIK_NULL) {
-//            return true; //无动作
+    int switchChairViewID(int cbViewID) {
+        return (cbViewID + m_MeChairID) % m_CurPlayer;
+    }
+
+//    0------------------------------------------------------------
+//    public void onTouchEnded(Widget *pWidget, const char *pName) {
+//        if (strcmp(pName, "Button_Over_Close") == 0) {    //关闭按钮
+//            m_pGameOverNode->removeFromParent();
+//            m_pGameOverNode = NULL;
+//            m_GameEngine->onGameRestart();              //重新开始游戏
+//        } else if (strcmp(pName, "Button_Exit") == 0) {     //退出游戏按钮
+//            GameSceneManager::getInstance()->confirm("退出游戏后，本局游戏将直接结束无法恢复，确定是否退出？", false, false, this, CC_CALLFUNCN_SELECTOR(GameLayer::exitGame));
+//        } else if (strcmp(pName, "Button_Set") == 0) {      //游戏设置按钮
+//            m_pLayer->addChild(SetLayer::create()->GetLayer()); //显示设置层
 //        }
-//        m_pOperateNotifyGroup.clearChildren();
-//        m_pOperateNotifyGroup.setVisible(true);
-//        float x = 500.0f;
-//        float y = 65.0f;
-//        if ((OperateNotify.cbActionMask & WIK_H) != 0) {
-//            Group pHuNode = CocosResource.loadFile("res/BtnHu.json");
-//            pHuNode.setPosition(x, y);
-//            ImageView pHuBtn = (ImageView) pHuNode.getChildren().get(0);
-//            pHuBtn.setTag(OperateNotify.cbActionCard);
-////            pHuBtn.addListener(onOperateTouch, this));
-//            m_pOperateNotifyGroup.addActor(pHuNode);
-//            x -= 160;
-//        }
-//        if ((OperateNotify.cbActionMask & WIK_G) != 0) {
-//            for (int i = 0; i < OperateNotify.cbGangCount; i++) {
-//                Group pGangNode = CocosResource.loadFile("res/BtnGang.csb");
-//                pGangNode.setPosition(x, y + (i * 120));
-//                Group pGangBtn = (Group) pGangNode.getChildren().get(0);
-//                ImageView pImgGangCard = (ImageView) UIHelper.seekNodeByName(pGangBtn,"ImgGangCard");
-//                pImgGangCard.loadTexture(getDiscardCardImagePath(0, OperateNotify.cbGangCard[i]));
-//                pImgGangCard.setVisible(OperateNotify.cbGangCount > 1);
-//                pGangBtn.setName(OperateNotify.cbGangCard[i]+"");
-////                pGangBtn.addTouchEventListener(CC_CALLBACK_2(GameLayer::onOperateTouch, this));
-//                m_pOperateNotifyGroup.addActor(pGangNode);
-//            }
-//            x -= 160;
-//        }
-//        if ((OperateNotify.cbActionMask & WIK_P) != 0) {
-//            Group pPengNode = CocosResource.loadFile("res/BtnPeng.csb");
-//            pPengNode.setPosition(x, y);
-//            Group pPengBtn = (Group) pPengNode.getChildren().get(0);
-////            pPengBtn->setTag(OperateNotify.cbActionCard);
-////            pPengBtn->addTouchEventListener(CC_CALLBACK_2(GameLayer::onOperateTouch, this));
-////            m_pOperateNotifyGroup->addChild(pPengNode);
-//            x -= 160;
-//        }
-////        Node *pGuoNode = CSLoader::createNode("res/BtnGuo.csb");
-////        pGuoNode->setPosition(Vec2(x, y));
-////        ui::Button *pGuoBtn = dynamic_cast<ui::Button *>(pGuoNode->getChildren().at(0));
-////        pGuoBtn->setTag(OperateNotify.cbActionCard);
-////        pGuoBtn->addTouchEventListener(CC_CALLBACK_2(GameLayer::onOperateTouch, this));
-////        m_pOperateNotifyGroup->addChild(pGuoNode);
-//        return true;
-//    }                      //显示操作通知
-//    boolean showAndPlayOperateEffect(int cbViewID,int cbOperateCode, boolean bZm){
-//        float x = 0;
-//        float y = 0;
-//        switch (cbViewID) {
-//            case 0: {   //自己操作反馈
-//                x = 640.0f;
-//                y = 200.0f;
-//                break;
-//            }
-//            case 1: {
-//                x = 440.0f;
-//                y = 360.0f;
-//                break;
-//            }
-//            case 2: {
-//                x = 640.0f;
-//                y = 520.0f;
-//                break;
-//            }
-//            case 3: {
-//                x = 840.0f;
-//                y = 360.0f;
-//                break;
-//            }
-//            default:
-//                break;
-//        }
-//        std::string strEffect = "";
-//        switch (cbOperateCode) {
-//            case WIK_NULL: {
-//                break;
-//            }
-//            case WIK_P: {
-//                strEffect = "res/EffectPeng.csb";
-//                break;
-//            }
-//            case WIK_G: {
-//                strEffect = "res/EffectGang.csb";
-//                break;
-//            }
-//            case WIK_H: {
-//                strEffect = bZm ? "res/EffectZm.csb" : "res/EffectHu.csb";
-//                break;
-//            }
-//            default:
-//                break;
-//        }
-//        if (strEffect != "") {
-//            std::string strNodeName = "EffectNode";
-//            Node *pEffectNode = CSLoader::createNode(strEffect);
-//            pEffectNode->setPosition(Vec2(x, y));
-//            cocostudio::timeline::ActionTimeline *action = CSLoader::createTimeline(strEffect);
-//            action->gotoFrameAndPlay(0, false);
-//            pEffectNode->setName(strNodeName);
-//            m_pLayer->addChild(pEffectNode);
-//            if (cbOperateCode != WIK_H) {    //胡牌不自动删除动画
-//                action->setLastFrameCallFunc(CC_CALLBACK_0(GameLayer::removeEffectNode, this, strNodeName));
-//            }
-//            pEffectNode->runAction(action);
-//        }
-//        return true;
-//    }//播放特效
-//    boolean showTingResult(int cbCardIndex[], GameLogic.TagWeaveItem WeaveItem[], int cbWeaveCount){
-//        return false;
-//
-//    }   //显示听牌的结果
-//    boolean showAndUpdateUserScore(int lGameScoreTable[]){
-//        return false;
-//    }             //更新分数
-//    ImageView createHandCardImageView(int cbViewID, int cbData){
-//        return ui::ImageView::create(getHandCardImagePath(cbViewID, cbData));
-//
-//    }   //创建牌的ImageView
-//    ImageView createDiscardCardImageView(int cbViewID, int cbData){
-//        return ui::ImageView::create(getDiscardCardImagePath(cbViewID, cbData));
-//    }//创建出牌的ImageView
-//    String getDiscardCardImagePath(int cbViewID, int cbData){
-//        std::string strImagePath = "";
-//        switch (cbViewID) {
-//            case 0: {
-//                strImagePath = "res/GameLayer/Mahjong/2/mingmah_" + utility::toString(((cbData & MASK_COLOR)
-//                        >> 4) + 1, cbData & MASK_VALUE) + ".png";
-//                break;
-//            }
-//            case 1: {
-//                strImagePath = "res/GameLayer/Mahjong/3/mingmah_" + utility::toString(((cbData & MASK_COLOR)
-//                        >> 4) + 1, cbData & MASK_VALUE) + ".png";
-//                break;
-//            }
-//            case 2: {
-//                strImagePath = "res/GameLayer/Mahjong/2/mingmah_" + utility::toString(((cbData & MASK_COLOR)
-//                        >> 4) + 1, cbData & MASK_VALUE) + ".png";
-//                break;
-//            }
-//            case 3: {
-//                strImagePath = "res/GameLayer/Mahjong/1/mingmah_" + utility::toString(((cbData & MASK_COLOR)
-//                        >> 4) + 1, cbData & MASK_VALUE) + ".png";
-//                break;
-//            }
-//            default:
-//                break;
-//        }
-//        return strImagePath;
 //    }
-//    //获取牌的图片路径
-//    String getBackCardImagePath(int cbViewID, int cbData){
-//        std::string strImagePath = "";
-//        switch (cbViewID) {
-//            case 0: {
-//                strImagePath = "res/GameLayer/Mahjong/2/mingmah_00.png";
-//                break;
+
+    /**
+     * 出牌
+     *
+     * @param ref
+     * @param eventType
+     */
+
+    private ClickListener clickListener = new ClickListener() {
+        @Override
+        public void clicked(InputEvent event, float x, float y) {
+            super.clicked(event, x, y);
+//            onCardTouch(Ref *ref, ui::Widget::TouchEventType eventType) {
+//            if (m_pOutCard != null) return;
+            if (m_bOperate) {
+                Actor pCard = event.getTarget();
+                Group pHandCard0 = m_PlayerPanel[0].findActor("HandCard_0");
+                SnapshotArray<Actor> aChildren = pHandCard0.getChildren();
+                for (Actor actor : aChildren) {
+//                        Node *child = dynamic_cast<Node *>(subWidget);
+                    if (actor != pCard) {
+                        actor.setY(0.0f);
+                    }
+                }
+                Group pRecvHandCard0 = m_PlayerPanel[0].findActor("RecvHandCard_0");
+                SnapshotArray<Actor> bChildren = pRecvHandCard0.getChildren();
+                for (Actor actor : bChildren) {
+                    if (pCard != actor) {
+                        actor.setY(0.0f);
+                    }
+                }
+                if (pCard != null) {
+                    String btCardName = pCard.getName();
+//                            case ui::Widget::TouchEventType::BEGAN: {
+                    m_pOutCard = pCard;         //正在出牌状态
+                    m_bMove = false;                                //是否移动牌状态
+                    m_startVec.x = pCard.getX();              //记录开始位置
+                    m_startVec.y = pCard.getY();
+                    //听牌判断
+//                        int cbCardData = pCard.getTag();   //牌
+                    int cbWeaveItemCount = m_cbWeaveItemCount[m_MeChairID];
+                    GameLogic.TagWeaveItem[] pTagWeaveItem = m_WeaveItemArray[m_MeChairID];
+                    int cbTingCard[] = new int[MAX_INDEX];
+//                        memset(&cbTingCard, 0, sizeof(cbTingCard));
+                    int cbCardIndex[] = m_cbCardIndex[m_MeChairID];
+//                        memcpy(&cbTingCard, cbCardIndex, sizeof(cbTingCard));   //内存拷贝
+//                        cbTingCard[m_GameLogic.switchToCardIndex(cbCardData)]--;   //移除要出的牌进行分析
+                    showTingResult(cbTingCard, pTagWeaveItem, cbWeaveItemCount);
+//                        break;
+                }
+//                            case ui::Widget::TouchEventType::MOVED: {
+//                                Vec2 a = pCard->getTouchBeganPosition();
+//                                Vec2 b = pCard->getTouchMovePosition();
+//                                pCard->setPosition(m_startVec + (b - a));       //移动
+//                                if (b.y - a.y > 60 || abs(b.x - a.x) > 30) {    //移动判定
+//                                    m_bMove = true;
+//                                }
+//                                break;
+////                            }
+//                            case ui::Widget::TouchEventType::CANCELED:
+//                            case ui::Widget::TouchEventType::ENDED: {
+//                                m_pOutCard = NULL;                             //结束出牌状态
+                Vector2 endVec = new Vector2(pCard.getX(), pCard.getY());
+                if (endVec.y - m_startVec.y > 118) {
+                    NLog.i("out card");
+                    GameCmd.CMD_C_OutCard OutCard = new GameCmd.CMD_C_OutCard();
+//                                    memset(&OutCard, 0, sizeof(CMD_C_OutCard));
+//                                    OutCard.cbCardData = pCard->getTag();
+                    m_GameEngine.onUserOutCard(OutCard);
+                } else {
+                    if (m_startVec.y == m_cardPosY) {                               //正常状态
+                        if (m_bMove) {
+                            pCard.setPosition(m_startVec);                         //移动
+                        } else {
+                            pCard.setPosition(m_startVec.x, m_startVec.y + m_outY);       //移动
+                        }
+                    } else if (m_startVec.y == m_cardPosY + m_outY) {               //选牌状态
+//                                        Vector2 a = pCard.getTouchBeganPosition();                    //触摸上半部分，撤销出牌
+                        if (y > 118) {
+                            pCard.setPosition(m_startVec.x, m_startVec.y + m_outY);
+                        } else {                                                   //触摸下半部分，出牌
+                            pCard.setPosition(m_startVec);
+                            GameCmd.CMD_C_OutCard OutCard = new GameCmd.CMD_C_OutCard();
+//                                            memset(&OutCard, 0, sizeof(CMD_C_OutCard));
+//                                            OutCard.cbCardData = (pCard->getTag());
+                            m_GameEngine.onUserOutCard(OutCard);
+                        }
+                    } else {
+                        pCard.setPosition(m_startVec);    //移动
+                    }
+                }
+
+                        }
+//                    }
+//                }
 //            }
-//            case 1: {
-//                strImagePath = "res/GameLayer/Mahjong/1/mingmah_00.png";
-//                break;
-//            }
-//            case 2: {
-//                strImagePath = "res/GameLayer/Mahjong/2/mingmah_00.png";
-//                break;
-//            }
-//            case 3: {
-//                strImagePath = "res/GameLayer/Mahjong/1/mingmah_00.png";
-//                break;
-//            }
-//            default:
-//                break;
-//        }
-//        return strImagePath;
-//    }      //获取牌背面的路径
-//    String getHandCardImagePath(int cbViewID, int cbData){
-//        std::string strImagePath = "";
-//        switch (cbViewID) {
-//            case 0: {
-//                strImagePath = "res/GameLayer/Mahjong/2/handmah_" + utility::toString(((cbData & MASK_COLOR)
-//                        >> 4) + 1, cbData & MASK_VALUE) + ".png";
-//                break;
-//            }
-//            case 1: {
-//                strImagePath = "res/GameLayer/Mahjong/hand_left.png";
-//                break;
-//            }
-//            case 2: {
-//                strImagePath = "res/GameLayer/Mahjong/hand_top.png";
-//                break;
-//            }
-//            case 3: {
-//                strImagePath = "res/GameLayer/Mahjong/hand_right.png";
-//                break;
-//            }
-//            default:
-//                break;
-//        }
-//        return strImagePath;
-//    }         //获取手上的牌图片路径
-//    int switchViewChairID(int cbChairID){
-//        return 0;
-//    }   //椅子位置切换成视图位置
-//    int switchChairViewID(int cbViewID){
-//        return 0;
-//    }    //视图位置切换成椅子位置
-//    void playSound(String file){}               //播放声音
-//    void removeEffectNode(String strNodeName){
-//        std::vector<Node *> aChildren;
-//        aChildren.clear();
-//        UIHelper::getChildren(m_pLayer, strNodeName, aChildren);
-//        for (auto &subChild : aChildren) {
-//            subChild->removeFromParent();
-//        }
-//    } //移除特效
-//    void exitGame(Group pNode){}                     //退出游戏
 
 
+            };
+
+
+//    void GameLayer::onOperateTouch(Ref *ref, ui::Widget::TouchEventType eventType) {
+//        ui::Button *pRef = dynamic_cast<ui::Button *>(ref);
+//        if (pRef != NULL) {
+//            std::string btnName = pRef->getName();
+//            int iTag = pRef->getTag();
+//            switch (eventType) {
+//                case ui::Widget::TouchEventType::ENDED:
+//                    CMD_C_OperateCard OperateCard;
+//                    memset(&OperateCard, 0, sizeof(CMD_C_OperateCard));
+//                    if (strcmp(btnName.c_str(), "btn_hu") == 0) {
+//                        OperateCard.cbOperateCode = WIK_H;
+//                        OperateCard.cbOperateCard = static_cast<int >(iTag);
+//                    }
+//                    if (strcmp(btnName.c_str(), "btn_gang") == 0) {
+//                        OperateCard.cbOperateCode = WIK_G;
+//                        OperateCard.cbOperateCard = static_cast<int>(iTag);
+//                    }
+//                    if (strcmp(btnName.c_str(), "btn_peng") == 0) {
+//                        OperateCard.cbOperateCode = WIK_P;
+//                        OperateCard.cbOperateCard = static_cast<int>(iTag);
+//                    }
+//                    if (strcmp(btnName.c_str(), "btn_guo") == 0) {
+//                        OperateCard.cbOperateCode = WIK_NULL;
+//                        OperateCard.cbOperateCard = static_cast<int>(iTag);
+//                        m_pOperateNotifyGroup->removeAllChildren();
+//                        m_pOperateNotifyGroup->setVisible(false);
+//                    }
+//                    OperateCard.cbOperateUser = m_MeChairID;
+//                    m_GameEngine->onUserOperateCard(OperateCard);
+//                    break;
+//                default:
+//                    break;
+//            }
+//        }
+//    }
+
+
+    };
 }

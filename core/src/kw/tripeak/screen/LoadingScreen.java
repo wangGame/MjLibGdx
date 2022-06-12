@@ -10,6 +10,7 @@ import com.kw.gdx.audio.Asset;
 import com.kw.gdx.listener.ButtonListener;
 import com.kw.gdx.screen.BaseScreen;
 
+import kw.mj.MjScreen;
 import kw.tripeak.asset.FontResource;
 
 @ScreenResource("cocos/HelloLayer.json")
@@ -27,7 +28,7 @@ public class LoadingScreen extends BaseScreen {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                setScreen(MainScreen.class);
+                setScreen(MjScreen.class);
             }
         });
     }

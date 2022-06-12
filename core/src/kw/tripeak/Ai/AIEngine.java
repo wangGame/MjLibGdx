@@ -26,13 +26,13 @@ public class AIEngine extends Actor implements IGameEngineEventListener {
     private int m_cbSendCardData;//AI玩家
     private IPlayer m_MePlayer;//发送的牌
     private GameLogic.TagWeaveItem m_WeaveItemArray[][];                 //组合
-    int m_cbCardIndex[][];                         //玩家牌
-    int m_cbWeaveItemCount[] = new int[GAME_PLAYER];                               //组合数目
-    int m_cbDiscardCount[] = new int[GAME_PLAYER];                                 //丢弃数目
-    int m_cbDiscardCard[][];                     //丢弃记录
-    int m_cbLeftCardCount;                                             //剩余
-    int m_cbBankerChair;                                               //庄
-    int m_MeChairID;                                                   //自己的位置
+    private int m_cbCardIndex[][];                         //玩家牌
+    private int m_cbWeaveItemCount[] = new int[GAME_PLAYER];                               //组合数目
+    private int m_cbDiscardCount[] = new int[GAME_PLAYER];                                 //丢弃数目
+    private int m_cbDiscardCard[][];                     //丢弃记录
+    private int m_cbLeftCardCount;                                             //剩余
+    private int m_cbBankerChair;                                               //庄
+    private int m_MeChairID;                                                   //自己的位置
 
     public AIEngine() {
         m_GameEngine = GameEngine.GetGameEngine();
