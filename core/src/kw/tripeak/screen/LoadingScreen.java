@@ -13,6 +13,9 @@ import com.kw.gdx.screen.BaseScreen;
 import kw.mj.MjScreen;
 import kw.tripeak.asset.FontResource;
 
+/**
+ * 主页面
+ */
 @ScreenResource("cocos/HelloLayer.json")
 public class LoadingScreen extends BaseScreen {
     public LoadingScreen(BaseGame game) {
@@ -22,9 +25,9 @@ public class LoadingScreen extends BaseScreen {
     @Override
     public void initView() {
         super.initView();
-        Actor button_logon = findActor("Button_Logon");
-        button_logon.setTouchable(Touchable.enabled);
-        button_logon.addListener(new ButtonListener(){
+        Actor startBtn = findActor("Button_Logon");
+        startBtn.setTouchable(Touchable.enabled);
+        startBtn.addListener(new ButtonListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
