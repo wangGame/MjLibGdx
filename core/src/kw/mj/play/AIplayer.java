@@ -13,7 +13,7 @@ public class AIplayer extends AbstarctPlay {
     @Override
     public void peakCard() {
         super.peakCard();
-        addAction(Actions.delay(0.5F,Actions.run(()->{
+        addAction(Actions.delay(1F,Actions.run(()->{
             outCard();
         })));
     }

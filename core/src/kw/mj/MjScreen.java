@@ -5,11 +5,8 @@ import static kw.tripeak.constant.Constant.GAME_PLAYER;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
-import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.SnapshotArray;
 import com.kw.gdx.BaseGame;
 import com.kw.gdx.annotation.ScreenResource;
@@ -54,23 +51,22 @@ public class MjScreen extends BaseScreen {
     }
 
     private void fapai() {
-        System.out.println(currentPlayer);
-//        System.out.println(switchViewChairID(currentPlayer)+"------------------------");
         abstarctPlays[switchViewChairID(currentPlayer++)].peakCard();
     }
 
     //发牌和打牌
-    private void reciveAndSendCard(int chair) {
+    private void reciveCard(int chair) {
 //        currentPlayer = chair;
         //发牌
         nextCard = data.getNextCard();
-        int viewChairID = switchViewChairID(currentPlayer);
+        int viewChairID = chair;
         Group playerPanel = rootView.findActor("PlayerPanel_"+viewChairID);
         if(viewChairID == 0) {
             Group recvHandCard = playerPanel.findActor("RecvHandCard_" + viewChairID);
             String handCardImagePath = getHandCardImagePath(viewChairID, nextCard);
             EveryCard everyCard = new EveryCard(handCardImagePath);
             recvHandCard.addActor(everyCard);
+            recvHandCard.setVisible(true);
             everyCard.setY(100);
         }else {
             Image image = playerPanel.findActor("RecvCard_" + viewChairID);
@@ -82,12 +78,12 @@ public class MjScreen extends BaseScreen {
         abstarctPlays[0] = new NomalPlayer(new AbstarctPlay.IPlayCallback() {
             @Override
             public void call(int chair) {
-                reciveAndSendCard(chair);
+                reciveCard(chair);
             }
         }, new AbstarctPlay.IPlayCallback() {
             @Override
             public void call(int chair) {
-                fapai1(chair);
+                sendCard(chair);
             }
         });
         abstarctPlays[0].setChair(0);
@@ -96,12 +92,12 @@ public class MjScreen extends BaseScreen {
             abstarctPlays[i] = new AIplayer(new AbstarctPlay.IPlayCallback() {
                 @Override
                 public void call(int chair) {
-                    reciveAndSendCard(chair);
+                    reciveCard(chair);
                 }
             }, new AbstarctPlay.IPlayCallback() {
                 @Override
                 public void call(int chair) {
-                    fapai1(chair);
+                    sendCard(chair);
                 }
             });
             abstarctPlays[i].setChair(i);
@@ -123,7 +119,13 @@ public class MjScreen extends BaseScreen {
         m_pTextCardNum = rootView.findActor("Text_LeftCard");   //操作节点
     }
 
-    private void fapai1(int xx) {
+    private void sendCard(int xx) {
+        Group playerPanel_0 = findActor("PlayerPanel_"+xx);
+        if (xx == 0) {
+            playerPanel_0.findActor("RecvHandCard_" + xx).setVisible(false);
+        }else {
+            playerPanel_0.findActor("RecvCard_" + xx).setVisible(false);
+        }
         Group actor = rootView.findActor("DiscardCard_" + xx);
         String handCardImagePath = getHandCardImagePath1(xx, nextCard);
         EveryCard everyCard = new EveryCard(handCardImagePath);
