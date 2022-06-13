@@ -69,6 +69,7 @@ public class MjScreen extends BaseScreen {
             EveryCard everyCard = new EveryCard(handCardImagePath);
             recvHandCard.addActor(everyCard);
             recvHandCard.setVisible(true);
+            everyCard.setData(nextCard);
             everyCard.setY(100);
             abstarctPlays[chair].setEvery(everyCard);
         }else {
@@ -125,11 +126,9 @@ public class MjScreen extends BaseScreen {
     }
 
     private void sendCard(int chair,Actor actor) {
-        EveryCard everyCardTemp = null;
+        int sendCardsData = nextCard;
         if (actor instanceof EveryCard){
-            everyCardTemp = (EveryCard) actor;
-        }else {
-            return;
+            sendCardsData = ((EveryCard) actor).getData();
         }
         Group playerPanel = findActor("PlayerPanel_"+chair);
         if (chair == 0) {
@@ -138,7 +137,7 @@ public class MjScreen extends BaseScreen {
             playerPanel.findActor("RecvCard_" + chair).setVisible(false);
         }
         Group discardCard = rootView.findActor("DiscardCard_" + chair);
-        String handCardImagePath = getHandCardImagePath1(chair, everyCardTemp.getData());
+        String handCardImagePath = getHandCardImagePath1(chair, sendCardsData);
         EveryCard everyCard = new EveryCard(handCardImagePath);
         if (chair==1||chair==3){
             everyCard.setY(playCardsPos[chair]*60);
@@ -150,13 +149,14 @@ public class MjScreen extends BaseScreen {
 
 
 
-
-        handCardImagePath = getHandCardImagePath(chair, nextCard);
-        Group handCard_0 = playerPanel.findActor("HandCard_"+chair);
-        everyCard = new EveryCard(handCardImagePath);
-        everyCard.setData(nextCard);
-        handCard_0.addActor(everyCard);
-        handCard_0.removeActor(actor);
+        Group handCard_0 = playerPanel.findActor("HandCard_" + chair);
+        if (nextCard != sendCardsData) {
+            handCardImagePath = getHandCardImagePath(chair, nextCard);
+            everyCard = new EveryCard(handCardImagePath);
+            everyCard.setData(nextCard);
+            handCard_0.addActor(everyCard);
+            handCard_0.removeActor(actor);
+        }
         SnapshotArray<Actor> children = handCard_0.getChildren();
         sortCard(chair);
         fuwei();

@@ -16,6 +16,11 @@ public class NomalPlayer extends AbstarctPlay {
     @Override
     public void setCard(Group panel) {
         super.setCard(panel);
+        restCards();
+    }
+
+    @Override
+    protected void restCards() {
         Group handCard = panel.findActor("HandCard_" + chair);
         int index = 0;
         for (Actor child : handCard.getChildren()) {

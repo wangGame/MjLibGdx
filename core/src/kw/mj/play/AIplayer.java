@@ -20,6 +20,7 @@ public class AIplayer extends AbstarctPlay {
     public void peakCard() {
         super.peakCard();
         addAction(Actions.delay(1F,Actions.run(()->{
+            restCards();
             int card = cards[(int) (cards.length * Math.random())];
             EveryCard everyCard = indexToEvery(card);
             outCard(everyCard);
@@ -29,6 +30,10 @@ public class AIplayer extends AbstarctPlay {
     @Override
     public void setCard(Group panel) {
         super.setCard(panel);
+    }
+
+    @Override
+    protected void restCards() {
         Group handCard = panel.findActor("HandCard_" + chair);
         int index = 0;
         for (Actor child : handCard.getChildren()) {

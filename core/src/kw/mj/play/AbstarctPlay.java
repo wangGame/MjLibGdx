@@ -13,7 +13,7 @@ public class AbstarctPlay extends Actor {
     private IPlayCallback outCard;
     protected int chair;
     protected int[] cards;
-    private Group panel;
+    protected Group panel;
 
     public AbstarctPlay(IPlayCallback peakCard, IPlayCallback outCard) {
         this.peakCard = peakCard;
@@ -40,17 +40,20 @@ public class AbstarctPlay extends Actor {
     //揭牌之后的
     public void setEvery(EveryCard everyCard){
         cards[13] = everyCard.getData();
+        restCards();
         everyCard.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 super.clicked(event, x, y);
-                outCard(event.getTarget());
+                outCard(event.getListenerActor());
+                System.out.println("---------------------------------");
             }
         });
     }
 
     public void setData(int nextCard) {
         cards[13] = nextCard;
+        restCards();
     }
 
     public EveryCard indexToEvery(int index){
@@ -64,6 +67,10 @@ public class AbstarctPlay extends Actor {
             }
         }
         return null;
+    }
+
+    protected void restCards() {
+
     }
 
     public interface IPlayCallback {
