@@ -19,12 +19,12 @@ public class AIplayer extends AbstarctPlay {
     @Override
     public void peakCard() {
         super.peakCard();
-        addAction(Actions.delay(1F,Actions.run(()->{
-            restCards();
-            int card = cards[(int) (cards.length * Math.random())];
-            EveryCard everyCard = indexToEvery(card);
-            outCard(everyCard);
-        })));
+//        addAction(Actions.delay(1F,Actions.run(()->{
+//            restCards();
+//            int card = cards[(int) (cards.length * Math.random())];
+//            EveryCard everyCard = indexToEvery(card);
+//            outCard(everyCard);
+//        })));
     }
 
     @Override

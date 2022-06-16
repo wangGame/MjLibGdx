@@ -23,6 +23,10 @@ public class GameData {
     };
     private int userCard[][] = new int[4][13];
 
+    public int[] getAllCardData() {
+        return allCardData;
+    }
+
     public int touShaizi(){
         return (int) (Math.random() % 6 + 1 + Math.random() % 6 + 1);    //骰子点数
     }

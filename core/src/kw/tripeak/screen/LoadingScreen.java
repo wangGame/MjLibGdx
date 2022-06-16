@@ -12,6 +12,8 @@ import com.kw.gdx.screen.BaseScreen;
 
 import kw.mj.MjScreen;
 import kw.tripeak.asset.FontResource;
+import majiang_algorithm.AIUtil;
+import majiang_algorithm.HuUtil;
 
 /**
  * 主页面
@@ -25,6 +27,11 @@ public class LoadingScreen extends BaseScreen {
     @Override
     public void initView() {
         super.initView();
+        HuUtil.load();
+        AIUtil.load();
+
+        HuUtil.load();
+
         Actor startBtn = findActor("Button_Logon");
         startBtn.setTouchable(Touchable.enabled);
         startBtn.addListener(new ButtonListener(){

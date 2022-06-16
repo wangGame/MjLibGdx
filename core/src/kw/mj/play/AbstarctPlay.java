@@ -25,6 +25,10 @@ public class AbstarctPlay extends Actor {
         peakCard.call(chair,null);
     }
 
+    public int[] getCards() {
+        return cards;
+    }
+
     public void outCard(Actor actor){
         outCard.call(chair,actor);
     }
@@ -51,9 +55,16 @@ public class AbstarctPlay extends Actor {
         });
     }
 
+
     public void setData(int nextCard) {
         cards[13] = nextCard;
         restCards();
+        addAction(Actions.delay(1F,Actions.run(()->{
+            restCards();
+            int card = cards[(int) (cards.length * Math.random())];
+            EveryCard everyCard = indexToEvery(card);
+            outCard(everyCard);
+        })));
     }
 
     public EveryCard indexToEvery(int index){
@@ -76,4 +87,28 @@ public class AbstarctPlay extends Actor {
     public interface IPlayCallback {
         public void call(int run,Actor actor);
     }
+
+    public void checkPeng(){
+
+    }
+
+    public void checkGang(){
+
+    }
+
+    public void checkChi(){
+
+    }
+
+    public void checkHu(){
+
+    }
+
+    public void checkTing(){
+
+    }
+
+
+
+
 }

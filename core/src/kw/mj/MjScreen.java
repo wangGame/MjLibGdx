@@ -1,12 +1,10 @@
 package kw.mj;
 
-
 import static kw.tripeak.constant.Constant.GAME_PLAYER;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.SnapshotArray;
 import com.kw.gdx.BaseGame;
 import com.kw.gdx.annotation.ScreenResource;
@@ -14,6 +12,7 @@ import com.kw.gdx.screen.BaseScreen;
 
 import java.util.Comparator;
 
+import kw.bean.UserTask;
 import kw.mj.card.EveryCard;
 import kw.mj.data.GameData;
 import kw.mj.play.AIplayer;
@@ -29,15 +28,18 @@ public class MjScreen extends BaseScreen {
     private GameData data;
     private Group playerPanel[] = new Group[4];
     private Group faceFrame[] = new Group[4];
-    private Group m_pOperateNotifyGroup;//碰  胡 等操作
-    private Label m_pTextCardNum;
+//    private Group m_pOperateNotifyGroup;//碰  胡 等操作
+//    private Label m_pTextCardNum;
     private AbstarctPlay[] abstarctPlays = new AbstarctPlay[4];
     private int currentPlayer;
     private int playCardsPos[] = new int[4];
-    private int nextCard;
+    private int gameSendCard;
+    private GameLoagic loagic;
+    private UserTask task;
 
     public MjScreen(BaseGame game) {
         super(game);
+        task = new UserTask();
     }
 
     @Override
@@ -48,34 +50,51 @@ public class MjScreen extends BaseScreen {
         initData();
         showHandPai();
         //发牌然后出牌
-
         peakCard();
     }
 
+    private void initInstance() {
+        //逻辑
+        loagic = new GameLoagic();
+        //初始化头像节点数组
+        for (int i = 0; i < GAME_PLAYER; i++) {
+            //四个人的脸
+            faceFrame[i] = rootView.findActor("face_frame_" + i);
+            //四个人的牌放的位置
+            playerPanel[i] = rootView.findActor("PlayerPanel_" + i);
+        }
+//        //操作节点 （用户）
+//        m_pOperateNotifyGroup = rootView.findActor("OperateNotifyGroup");
+//        //展示还剩多少牌了
+//        m_pTextCardNum = rootView.findActor("Text_LeftCard");   //操作节点
+    }
+
     private void peakCard() {
+        //第一个用户  从这里开始，需要系统发牌
+        task.setCurrentUser(currentPlayer);
         abstarctPlays[switchViewChairID(currentPlayer++)].peakCard();
     }
 
     //发牌和打牌
     private void reciveCard(int chair) {
-//        currentPlayer = chair;
         //发牌
-        nextCard = data.getNextCard();
+        gameSendCard = data.getNextCard();
+        task.setCurrentCardData(gameSendCard);
         int viewChairID = chair;
         Group playerPanel = rootView.findActor("PlayerPanel_"+viewChairID);
         if(viewChairID == 0) {
             Group recvHandCard = playerPanel.findActor("RecvHandCard_" + viewChairID);
-            String handCardImagePath = getHandCardImagePath(viewChairID, nextCard);
+            String handCardImagePath = getHandCardImagePath(viewChairID, gameSendCard);
             EveryCard everyCard = new EveryCard(handCardImagePath);
             recvHandCard.addActor(everyCard);
             recvHandCard.setVisible(true);
-            everyCard.setData(nextCard);
+            everyCard.setData(gameSendCard);
             everyCard.setY(100);
             abstarctPlays[chair].setEvery(everyCard);
         }else {
             Image image = playerPanel.findActor("RecvCard_" + viewChairID);
             image.setVisible(true);
-            abstarctPlays[chair].setData(nextCard);
+            abstarctPlays[chair].setData(gameSendCard);
         }
     }
 
@@ -106,27 +125,12 @@ public class MjScreen extends BaseScreen {
                 }
             });
             abstarctPlays[i].setChair(i);
-
             stage.addActor(abstarctPlays[i]);
         }
     }
 
-    private void initInstance() {
-        //初始化头像节点数组
-        for (int i = 0; i < GAME_PLAYER; i++) {
-            //四个人的脸
-            faceFrame[i] = rootView.findActor("face_frame_" + i);
-            //四个人的牌放的位置
-            playerPanel[i] = rootView.findActor("PlayerPanel_" + i);
-        }
-        //操作节点 （用户）
-        m_pOperateNotifyGroup = rootView.findActor("OperateNotifyGroup");
-        //展示还剩多少牌了
-        m_pTextCardNum = rootView.findActor("Text_LeftCard");   //操作节点
-    }
-
     private void sendCard(int chair,Actor actor) {
-        int sendCardsData = nextCard;
+        int sendCardsData = gameSendCard;
         if (actor instanceof EveryCard){
             sendCardsData = ((EveryCard) actor).getData();
         }
@@ -146,14 +150,11 @@ public class MjScreen extends BaseScreen {
         }
         discardCard.addActor(everyCard);
         playCardsPos[chair]++;
-
-
-
         Group handCard_0 = playerPanel.findActor("HandCard_" + chair);
-        if (nextCard != sendCardsData) {
-            handCardImagePath = getHandCardImagePath(chair, nextCard);
+        if (gameSendCard != sendCardsData) {
+            handCardImagePath = getHandCardImagePath(chair, gameSendCard);
             everyCard = new EveryCard(handCardImagePath);
-            everyCard.setData(nextCard);
+            everyCard.setData(gameSendCard);
             handCard_0.addActor(everyCard);
             handCard_0.removeActor(actor);
         }
@@ -162,13 +163,68 @@ public class MjScreen extends BaseScreen {
         fuwei();
         for (Actor child : children) {
             buju(chair,child);
-
         }
 
+        boolean flag = false;
+        int targetPlay = 0;
 
-        peakCard();
+        //判断其他三个
+        for (int i = 1; i < 4; i++) {
+            if (i!=chair){
+                System.out.println(i+"-- user --"+chair+"--- card ---- "+sendCardsData);
+                flag = panduan(sendCardsData,abstarctPlays[i].getCards());
+                if (flag){
+                    targetPlay = i;
+                    break;
+                }
+            }
+        }
+        if (flag){
+            actions(sendCardsData,targetPlay);
+        }else {
+            peakCard();
+        }
     }
 
+    public void actions(int cardsData, int targetPlayer){
+        //发牌和打牌
+            //发牌
+            gameSendCard = cardsData;
+            int viewChairID = targetPlayer;
+            Group playerPanel = rootView.findActor("PlayerPanel_"+viewChairID);
+            if(viewChairID == 0) {
+                Group recvHandCard = playerPanel.findActor("RecvHandCard_" + viewChairID);
+                String handCardImagePath = getHandCardImagePath(viewChairID, gameSendCard);
+                EveryCard everyCard = new EveryCard(handCardImagePath);
+                recvHandCard.addActor(everyCard);
+                recvHandCard.setVisible(true);
+                everyCard.setData(gameSendCard);
+                everyCard.setY(100);
+                abstarctPlays[targetPlayer].setEvery(everyCard);
+            }else {
+                Image image = playerPanel.findActor("RecvCard_" + viewChairID);
+                image.setVisible(true);
+//                abstarctPlays[targetPlayer].setData(gameSendCard);
+                abstarctPlays[targetPlayer].setData(gameSendCard);
+            }
+    }
+
+    public boolean panduan(int target,int[] cards){
+        boolean flag = false;
+        if (loagic.estimateGangCard(cards,target)) {
+            System.out.println("gang--------"+target);
+            flag = true;
+        }
+        if (loagic.estimatePengCard(cards,target)) {
+            System.out.println("peng--------");
+            flag  =true;
+        }
+        if (loagic.estimateChiCard(cards,target)) {
+            System.out.println("chi--------");
+            flag = true;
+        }
+        return flag;
+    }
 
     public void initData(){
         data = new GameData();
