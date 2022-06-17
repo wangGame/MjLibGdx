@@ -96,6 +96,14 @@ public class MjScreen extends BaseScreen {
             image.setVisible(true);
             abstarctPlays[chair].setData(gameSendCard);
         }
+
+
+        //暗杠
+
+        //判断完成之后用户出现三个按钮。
+
+        //用户判断完成之后，点击发出牌之后
+
     }
 
     private void createPeople() {

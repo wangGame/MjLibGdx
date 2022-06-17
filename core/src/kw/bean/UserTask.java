@@ -5,6 +5,7 @@ public class UserTask {
     private int currentCardData;
     private int nextUser;
     private int currenType;
+    private int actionMask;
 
     public int getCurrentUser() {
         return currentUser;
