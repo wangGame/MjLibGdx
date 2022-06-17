@@ -5,6 +5,7 @@ import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Array;
 
 import kw.mj.card.EveryCard;
 
@@ -84,31 +85,20 @@ public class AbstarctPlay extends Actor {
 
     }
 
+    public void removeCard(int card) {
+        Group handCard = panel.findActor("HandCard_" + chair);
+        Array<Actor> arrayTemp = new Array<>();
+        for (Actor child : handCard.getChildren()) {
+            if (((EveryCard)(child)).getData() == card) {
+                arrayTemp.add(child);
+            }
+        }
+        for (Actor actor : arrayTemp) {
+            panel.removeActor(actor);
+        }
+    }
+
     public interface IPlayCallback {
         public void call(int run,Actor actor);
     }
-
-    public void checkPeng(){
-
-    }
-
-    public void checkGang(){
-
-    }
-
-    public void checkChi(){
-
-    }
-
-    public void checkHu(){
-
-    }
-
-    public void checkTing(){
-
-    }
-
-
-
-
 }

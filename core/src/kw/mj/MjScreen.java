@@ -4,7 +4,9 @@ import static kw.tripeak.constant.Constant.GAME_PLAYER;
 
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.SnapshotArray;
 import com.kw.gdx.BaseGame;
 import com.kw.gdx.annotation.ScreenResource;
@@ -12,6 +14,7 @@ import com.kw.gdx.screen.BaseScreen;
 
 import java.util.Comparator;
 
+import kw.bean.ActionType;
 import kw.bean.UserTask;
 import kw.mj.card.EveryCard;
 import kw.mj.data.GameData;
@@ -24,18 +27,16 @@ import kw.mj.play.NomalPlayer;
  */
 @ScreenResource("cocos/GameLayer.json")
 public class MjScreen extends BaseScreen {
-    private int zhuangjia;
-    private GameData data;
-    private Group playerPanel[] = new Group[4];
-    private Group faceFrame[] = new Group[4];
-//    private Group m_pOperateNotifyGroup;//碰  胡 等操作
-//    private Label m_pTextCardNum;
-    private AbstarctPlay[] abstarctPlays = new AbstarctPlay[4];
-    private int currentPlayer;
-    private int playCardsPos[] = new int[4];
-    private int gameSendCard;
-    private GameLoagic loagic;
     private UserTask task;
+    private int zhuangjia;
+    private int gameSendCard;
+    private GameData gameData;
+    private int currentPlayer;
+    private GameLoagic loagic;
+    private int discordCards[] = new int[4];
+    private Group faceFrame[] = new Group[4];
+    private Group playerCardsPanel[] = new Group[4];
+    private AbstarctPlay[] gamePlays = new AbstarctPlay[4];
 
     public MjScreen(BaseGame game) {
         super(game);
@@ -45,7 +46,7 @@ public class MjScreen extends BaseScreen {
     @Override
     public void initView() {
         super.initView();
-        initInstance();
+        initViewInstance();
         createPeople();
         initData();
         showHandPai();
@@ -53,15 +54,14 @@ public class MjScreen extends BaseScreen {
         peakCard();
     }
 
-    private void initInstance() {
-        //逻辑
-        loagic = new GameLoagic();
+    private void initViewInstance() {
+        loagic = new GameLoagic();//逻辑
         //初始化头像节点数组
         for (int i = 0; i < GAME_PLAYER; i++) {
             //四个人的脸
             faceFrame[i] = rootView.findActor("face_frame_" + i);
             //四个人的牌放的位置
-            playerPanel[i] = rootView.findActor("PlayerPanel_" + i);
+            playerCardsPanel[i] = rootView.findActor("PlayerPanel_" + i);
         }
 //        //操作节点 （用户）
 //        m_pOperateNotifyGroup = rootView.findActor("OperateNotifyGroup");
@@ -72,13 +72,13 @@ public class MjScreen extends BaseScreen {
     private void peakCard() {
         //第一个用户  从这里开始，需要系统发牌
         task.setCurrentUser(currentPlayer);
-        abstarctPlays[switchViewChairID(currentPlayer++)].peakCard();
+        gamePlays[switchViewChairID(currentPlayer++)].peakCard();
     }
 
     //发牌和打牌
     private void reciveCard(int chair) {
         //发牌
-        gameSendCard = data.getNextCard();
+        gameSendCard = gameData.getNextCard();
         task.setCurrentCardData(gameSendCard);
         int viewChairID = chair;
         Group playerPanel = rootView.findActor("PlayerPanel_"+viewChairID);
@@ -90,24 +90,16 @@ public class MjScreen extends BaseScreen {
             recvHandCard.setVisible(true);
             everyCard.setData(gameSendCard);
             everyCard.setY(100);
-            abstarctPlays[chair].setEvery(everyCard);
+            gamePlays[chair].setEvery(everyCard);
         }else {
             Image image = playerPanel.findActor("RecvCard_" + viewChairID);
             image.setVisible(true);
-            abstarctPlays[chair].setData(gameSendCard);
+            gamePlays[chair].setData(gameSendCard);
         }
-
-
-        //暗杠
-
-        //判断完成之后用户出现三个按钮。
-
-        //用户判断完成之后，点击发出牌之后
-
     }
 
     private void createPeople() {
-        abstarctPlays[0] = new NomalPlayer(new AbstarctPlay.IPlayCallback() {
+        gamePlays[0] = new NomalPlayer(new AbstarctPlay.IPlayCallback() {
             @Override
             public void call(int chair,Actor actor) {
                 reciveCard(chair);
@@ -118,10 +110,10 @@ public class MjScreen extends BaseScreen {
                 sendCard(chair,actor);
             }
         });
-        abstarctPlays[0].setChair(0);
-        stage.addActor(abstarctPlays[0]);
+        gamePlays[0].setChair(0);
+        stage.addActor(gamePlays[0]);
         for (int i = 1; i < 4; i++) {
-            abstarctPlays[i] = new AIplayer(new AbstarctPlay.IPlayCallback() {
+            gamePlays[i] = new AIplayer(new AbstarctPlay.IPlayCallback() {
                 @Override
                 public void call(int chair,Actor actor) {
                     reciveCard(chair);
@@ -132,8 +124,8 @@ public class MjScreen extends BaseScreen {
                     sendCard(chair,actor);
                 }
             });
-            abstarctPlays[i].setChair(i);
-            stage.addActor(abstarctPlays[i]);
+            gamePlays[i].setChair(i);
+            stage.addActor(gamePlays[i]);
         }
     }
 
@@ -152,12 +144,12 @@ public class MjScreen extends BaseScreen {
         String handCardImagePath = getHandCardImagePath1(chair, sendCardsData);
         EveryCard everyCard = new EveryCard(handCardImagePath);
         if (chair==1||chair==3){
-            everyCard.setY(playCardsPos[chair]*60);
+            everyCard.setY(discordCards[chair]*60);
         }else {
-            everyCard.setX(playCardsPos[chair] * 70);
+            everyCard.setX(discordCards[chair] * 70);
         }
         discardCard.addActor(everyCard);
-        playCardsPos[chair]++;
+        discordCards[chair]++;
         Group handCard_0 = playerPanel.findActor("HandCard_" + chair);
         if (gameSendCard != sendCardsData) {
             handCardImagePath = getHandCardImagePath(chair, gameSendCard);
@@ -173,34 +165,37 @@ public class MjScreen extends BaseScreen {
             buju(chair,child);
         }
 
-        boolean flag = false;
-        int targetPlay = 0;
 
+        ActionType actionType = null;
         //判断其他三个
         for (int i = 1; i < 4; i++) {
             if (i!=chair){
-                System.out.println(i+"-- user --"+chair+"--- card ---- "+sendCardsData);
-                flag = panduan(sendCardsData,abstarctPlays[i].getCards());
-                if (flag){
-                    targetPlay = i;
+                Array<ActionType> panduan = panduan(sendCardsData, gamePlays[i].getCards(), i);
+                System.out.println(panduan+"====================="+i);
+                if (panduan.size>0){
+                    actionType = panduan.get(0);
                     break;
                 }
             }
         }
-        if (flag){
-            actions(sendCardsData,targetPlay);
+        if (actionType!=null) {
+            actions(sendCardsData,actionType);
         }else {
             peakCard();
         }
-    }
+      }
 
-    public void actions(int cardsData, int targetPlayer){
+
+    public void actions(int cardsData, ActionType type){
         //发牌和打牌
             //发牌
             gameSendCard = cardsData;
-            int viewChairID = targetPlayer;
+            int viewChairID = type.getCurrentUser();
             Group playerPanel = rootView.findActor("PlayerPanel_"+viewChairID);
             if(viewChairID == 0) {
+                for (int card : type.getCards()) {
+                    gamePlays[0].removeCard(card);
+                }
                 Group recvHandCard = playerPanel.findActor("RecvHandCard_" + viewChairID);
                 String handCardImagePath = getHandCardImagePath(viewChairID, gameSendCard);
                 EveryCard everyCard = new EveryCard(handCardImagePath);
@@ -208,38 +203,40 @@ public class MjScreen extends BaseScreen {
                 recvHandCard.setVisible(true);
                 everyCard.setData(gameSendCard);
                 everyCard.setY(100);
-                abstarctPlays[targetPlayer].setEvery(everyCard);
+                gamePlays[type.getCurrentUser()].setEvery(everyCard);
             }else {
                 Image image = playerPanel.findActor("RecvCard_" + viewChairID);
                 image.setVisible(true);
-//                abstarctPlays[targetPlayer].setData(gameSendCard);
-                abstarctPlays[targetPlayer].setData(gameSendCard);
+//                gamePlays[targetPlayer].setData(gameSendCard);
+                gamePlays[type.getCurrentUser()].setData(gameSendCard);
             }
     }
 
-    public boolean panduan(int target,int[] cards){
-        boolean flag = false;
-        if (loagic.estimateGangCard(cards,target)) {
-            System.out.println("gang--------"+target);
-            flag = true;
+    public Array<ActionType> panduan(int target, int[] cards, int i){
+        ActionType actionGangType = loagic.estimateGangCard(cards, target);
+        ActionType actionPengType = loagic.estimatePengCard(cards, target);
+        Array<ActionType> actionTypes1 = loagic.estimateChiCard(cards, target);
+        Array<ActionType> actions = new Array<>();
+
+        if (actionGangType!=null) {
+            actions.add(actionGangType);
         }
-        if (loagic.estimatePengCard(cards,target)) {
-            System.out.println("peng--------");
-            flag  =true;
+        if (actionPengType!=null) {
+            actions.add(actionPengType);
         }
-        if (loagic.estimateChiCard(cards,target)) {
-            System.out.println("chi--------");
-            flag = true;
+        actions.addAll(actionTypes1);
+        for (ActionType action : actions) {
+            action.setCurrentUser(i);
         }
-        return flag;
+        return actions;
     }
 
     public void initData(){
-        data = new GameData();
-        zhuangjia = data.touShaizi();
+        gameData = new GameData();
+        zhuangjia = gameData.touShaizi();
         currentPlayer = zhuangjia;
-        data.shuffle();
-        data.zhuaPai();
+        gameData.shuffle();
+        gameData.zhuaPai();
     }
 
     public void fuwei(){
@@ -251,7 +248,7 @@ public class MjScreen extends BaseScreen {
 
     private void showHandPai() {
         fuwei();
-        int[][] userCard = data.getUserCard();
+        int[][] userCard = gameData.getUserCard();
         for (int i = 0; i < 4; i++) {
             int viewChairID = switchViewChairID(i);
             int[] ints = userCard[viewChairID];
@@ -262,7 +259,7 @@ public class MjScreen extends BaseScreen {
         for (int i = 0; i < 4; i++) {
             int viewChairID = switchViewChairID(i);
             SnapshotArray<Actor> snapshotArray = sortCard(viewChairID);
-            playerPanel[viewChairID].findActor("HandCard_"+viewChairID);
+            playerCardsPanel[viewChairID].findActor("HandCard_"+viewChairID);
             fuwei();
             for (Actor o : snapshotArray) {
                 buju(viewChairID,o);
@@ -271,12 +268,12 @@ public class MjScreen extends BaseScreen {
 
 
         for (int i = 0; i < 4; i++) {
-            abstarctPlays[i].setCard(playerPanel[i]);
+            gamePlays[i].setCard(playerCardsPanel[i]);
         }
     }
 
     private SnapshotArray sortCard(int viewChairId) {
-        Group handCard_0 = playerPanel[viewChairId].findActor("HandCard_"+viewChairId);
+        Group handCard_0 = playerCardsPanel[viewChairId].findActor("HandCard_"+viewChairId);
         SnapshotArray<Actor> children = handCard_0.getChildren();
         children.sort(new Comparator<Actor>() {
             @Override
@@ -298,7 +295,7 @@ public class MjScreen extends BaseScreen {
     private void showCard(int viewChairId,int ints){
         String handCardImagePath = getHandCardImagePath(viewChairId, ints);
         EveryCard everyCard = null;
-        Group handCard_0 = playerPanel[viewChairId].findActor("HandCard_"+viewChairId);
+        Group handCard_0 = playerCardsPanel[viewChairId].findActor("HandCard_"+viewChairId);
         everyCard = new EveryCard(handCardImagePath);
         everyCard.setData(ints);
         buju(viewChairId,everyCard);

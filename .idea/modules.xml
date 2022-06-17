@@ -2,11 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/MjLibGdx.iml" filepath="$PROJECT_DIR$/.idea/modules/MjLibGdx.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android/MjLibGdx.android.iml" filepath="$PROJECT_DIR$/.idea/modules/android/MjLibGdx.android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/core/MjLibGdx.core.iml" filepath="$PROJECT_DIR$/.idea/modules/core/MjLibGdx.core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/desktop/MjLibGdx.desktop.iml" filepath="$PROJECT_DIR$/.idea/modules/desktop/MjLibGdx.desktop.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/libGdxLib/MjLibGdx.libGdxLib.iml" filepath="$PROJECT_DIR$/.idea/modules/libGdxLib/MjLibGdx.libGdxLib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MjLibGdx.iml" filepath="$PROJECT_DIR$/MjLibGdx.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android/android.iml" filepath="$PROJECT_DIR$/android/android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/desktop/desktop.iml" filepath="$PROJECT_DIR$/desktop/desktop.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libGdxLib/libGdxLib.iml" filepath="$PROJECT_DIR$/libGdxLib/libGdxLib.iml" />
     </modules>
   </component>
 </project>
