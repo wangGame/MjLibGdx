@@ -15,6 +15,7 @@ public class GameLoagic {
                     cbCurrentCard,
                     cbCurrentCard
             });
+            return actionType;
         }
         return null;
     }

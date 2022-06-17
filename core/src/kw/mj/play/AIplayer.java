@@ -43,5 +43,6 @@ public class AIplayer extends AbstarctPlay {
                 cards[index ++] = temp.getData();
             }
         }
+        size = index;
     }
 }

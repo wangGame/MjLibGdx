@@ -15,6 +15,7 @@ public class AbstarctPlay extends Actor {
     protected int chair;
     protected int[] cards;
     protected Group panel;
+    protected int size;
 
     public AbstarctPlay(IPlayCallback peakCard, IPlayCallback outCard) {
         this.peakCard = peakCard;
@@ -66,6 +67,7 @@ public class AbstarctPlay extends Actor {
             EveryCard everyCard = indexToEvery(card);
             outCard(everyCard);
         })));
+        size = 13;
     }
 
     public EveryCard indexToEvery(int index){
@@ -87,15 +89,17 @@ public class AbstarctPlay extends Actor {
 
     public void removeCard(int card) {
         Group handCard = panel.findActor("HandCard_" + chair);
-        Array<Actor> arrayTemp = new Array<>();
+        Actor childTemp = null;
         for (Actor child : handCard.getChildren()) {
             if (((EveryCard)(child)).getData() == card) {
-                arrayTemp.add(child);
+                childTemp = child;
             }
         }
-        for (Actor actor : arrayTemp) {
-            panel.removeActor(actor);
+        handCard.removeActor(childTemp);
+        for (int i = 0; i < cards.length; i++) {
+            cards[i] = 0;
         }
+        restCards();
     }
 
     public interface IPlayCallback {

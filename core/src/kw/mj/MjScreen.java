@@ -209,6 +209,11 @@ public class MjScreen extends BaseScreen {
                 image.setVisible(true);
 //                gamePlays[targetPlayer].setData(gameSendCard);
                 gamePlays[type.getCurrentUser()].setData(gameSendCard);
+                for (int card : type.getCards()) {
+                    gamePlays[type.getCurrentUser()].removeCard(card);
+//                    Group handCard = playerCardsPanel[type.getCurrentUser()].findActor("HandCard_" + type.getCurrentUser());
+//                    handCard.clear();
+                }
             }
     }
 
